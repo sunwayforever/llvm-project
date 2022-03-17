@@ -14,6 +14,7 @@
 #ifndef LLVM_LIB_TARGET_RISCV_RISCVTARGETMACHINE_H
 #define LLVM_LIB_TARGET_RISCV_RISCVTARGETMACHINE_H
 
+#include "MCTargetDesc/RISCVMCTargetDesc.h"
 #include "llvm/CodeGen/SelectionDAGTargetInfo.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/Target/TargetMachine.h"
@@ -34,8 +35,6 @@ public:
     return TLOF.get();
   }
 };
-Target &getTheRISCV32Target();
-Target &getTheRISCV64Target();
 }
 
 #endif
