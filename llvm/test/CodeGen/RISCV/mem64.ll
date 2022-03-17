@@ -210,14 +210,12 @@ define i64 @ld_sd_global(i64 %a) nounwind {
 ; TODO: the addi should be folded in to the ld/sd operations
 ; RV64I-LABEL: ld_sd_global:
 ; RV64I:       # %bb.0:
-; RV64I-NEXT:    lui a1, %hi(G)
-; RV64I-NEXT:    addi a2, a1, %lo(G)
-; RV64I-NEXT:    ld a1, 0(a2)
-; RV64I-NEXT:    sd a0, 0(a2)
+; RV64I-NEXT:    lui a2, %hi(G)
+; RV64I-NEXT:    ld a1, %lo(G)(a2)
+; RV64I-NEXT:    sd a0, %lo(G)(a2)
 ; RV64I-NEXT:    lui a2, %hi(G+72)
-; RV64I-NEXT:    addi a2, a2, %lo(G+72)
-; RV64I-NEXT:    ld a3, 0(a2)
-; RV64I-NEXT:    sd a0, 0(a2)
+; RV64I-NEXT:    ld a3, %lo(G+72)(a2)
+; RV64I-NEXT:    sd a0, %lo(G+72)(a2)
 ; RV64I-NEXT:    addi a0, a1, 0
 ; RV64I-NEXT:    jalr zero, ra, 0
   %1 = load volatile i64, i64* @G
