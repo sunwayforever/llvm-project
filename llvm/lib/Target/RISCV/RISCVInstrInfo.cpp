@@ -54,15 +54,19 @@ void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
   if (I != MBB.end())
     DL = I->getDebugLoc();
 
-  if (RISCV::GPRRegClass.hasSubClassEq(RC)) {
-    unsigned Opcode = Subtarget.is64Bit() ? RISCV::SD : RISCV::SW;
-    BuildMI(MBB, I, DL, get(Opcode))
-        .addReg(SrcReg, getKillRegState(IsKill))
-        .addFrameIndex(FI)
-        .addImm(0);
-  } else {
+  unsigned Opcode;
+
+  if (RISCV::GPRRegClass.hasSubClassEq(RC))
+    Opcode = Subtarget.is64Bit() ? RISCV::SD : RISCV::SW;
+  else if (RISCV::FPR32RegClass.hasSubClassEq(RC))
+    Opcode = RISCV::FSW;
+  else
     llvm_unreachable("Can't store this register to stack slot");
-  }
+
+  BuildMI(MBB, I, DL, get(Opcode))
+      .addReg(SrcReg, getKillRegState(IsKill))
+      .addFrameIndex(FI)
+      .addImm(0);
 }
 
 void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
@@ -74,12 +78,16 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
   if (I != MBB.end())
     DL = I->getDebugLoc();
 
-  if (RISCV::GPRRegClass.hasSubClassEq(RC)) {
-    unsigned Opcode = Subtarget.is64Bit() ? RISCV::LD : RISCV::LW;
-    BuildMI(MBB, I, DL, get(Opcode), DstReg).addFrameIndex(FI).addImm(0);
-  } else {
+  unsigned Opcode;
+
+  if (RISCV::GPRRegClass.hasSubClassEq(RC))
+    Opcode = Subtarget.is64Bit() ? RISCV::LD : RISCV::LW;
+  else if (RISCV::FPR32RegClass.hasSubClassEq(RC))
+    Opcode = RISCV::FLW;
+  else
     llvm_unreachable("Can't load this register from stack slot");
-  }
+
+  BuildMI(MBB, I, DL, get(Opcode), DstReg).addFrameIndex(FI).addImm(0);
 }
 
 void RISCVInstrInfo::movImm32(MachineBasicBlock &MBB,
