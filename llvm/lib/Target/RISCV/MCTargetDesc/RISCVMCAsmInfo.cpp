@@ -22,4 +22,6 @@ RISCVMCAsmInfo::RISCVMCAsmInfo(const Triple &TT) {
   CommentString = "#";
   AlignmentIsInBytes = false;
   SupportsDebugInformation = true;
+  ExceptionsType = ExceptionHandling::DwarfCFI;
+  DwarfRegNumForCFI = true;
 }
