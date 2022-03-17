@@ -242,4 +242,15 @@ def : PatFpr32Fpr32<fmaxnum, FMAX_S>;
 def : PatFpr32Fpr32<setoeq, FEQ_S>;
 def : PatFpr32Fpr32<setolt, FLT_S>;
 def : PatFpr32Fpr32<setole, FLE_S>;
+
+/// Loads
+
+defm : LdPat<load, FLW>;
+
+/// Stores
+
+def : Pat<(store FPR32:$rs2, GPR:$rs1), (FSW FPR32:$rs2, GPR:$rs1, 0)>;
+def : Pat<(store FPR32:$rs2, (add GPR:$rs1, simm12:$imm12)),
+            (FSW FPR32:$rs2, GPR:$rs1, simm12:$imm12)>;
+
 } // Predicates = [HasStdExtF]
