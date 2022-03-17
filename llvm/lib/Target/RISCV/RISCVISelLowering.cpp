@@ -45,6 +45,9 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
   // Set up the register classes.
   addRegisterClass(XLenVT, &RISCV::GPRRegClass);
 
+  if (Subtarget.hasStdExtF())
+    addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
+
   // Compute derived properties from the register classes.
   computeRegisterProperties(STI.getRegisterInfo());
 
@@ -102,6 +105,11 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::CTTZ, XLenVT, Expand);
   setOperationAction(ISD::CTLZ, XLenVT, Expand);
   setOperationAction(ISD::CTPOP, XLenVT, Expand);
+
+  if (Subtarget.hasStdExtF()) {
+    setOperationAction(ISD::FMINNUM, MVT::f32, Legal);
+    setOperationAction(ISD::FMAXNUM, MVT::f32, Legal);
+  }
 
   setOperationAction(ISD::GlobalAddress, XLenVT, Custom);
   setOperationAction(ISD::BlockAddress, XLenVT, Custom);
@@ -484,7 +492,10 @@ static bool CC_RISCV(const DataLayout &DL, unsigned ValNo, MVT ValVT, MVT LocVT,
   unsigned XLen = DL.getLargestLegalIntTypeSizeInBits();
   assert(XLen == 32 || XLen == 64);
   MVT XLenVT = XLen == 32 ? MVT::i32 : MVT::i64;
-  assert(ValVT == XLenVT && "Unexpected ValVT");
+  if (ValVT == MVT::f32) {
+    LocVT = MVT::i32;
+    LocInfo = CCValAssign::BCvt;
+  }
   assert(LocVT == XLenVT && "Unexpected LocVT");
 
   // Any return value split in to more than two values can't be returned
@@ -627,6 +638,7 @@ static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
   MachineFunction &MF = DAG.getMachineFunction();
   MachineRegisterInfo &RegInfo = MF.getRegInfo();
   EVT LocVT = VA.getLocVT();
+  EVT ValVT = VA.getValVT();
   SDValue Val;
 
   unsigned VReg = RegInfo.createVirtualRegister(&RISCV::GPRRegClass);
@@ -638,8 +650,12 @@ static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
     llvm_unreachable("Unexpected CCValAssign::LocInfo");
   case CCValAssign::Full:
   case CCValAssign::Indirect:
-    return Val;
+    break;
+  case CCValAssign::BCvt:
+    Val = DAG.getNode(ISD::BITCAST, DL, ValVT, Val);
+    break;
   }
+  return Val;
 }
 
 // The caller is responsible for loading the full value if the argument is
@@ -860,6 +876,9 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
     switch (VA.getLocInfo()) {
     case CCValAssign::Full:
       break;
+    case CCValAssign::BCvt:
+      ArgValue = DAG.getNode(ISD::BITCAST, DL, VA.getLocVT(), ArgValue);
+      break;
     case CCValAssign::Indirect: {
       // Store the argument in a stack slot and pass its address.
       SDValue SpillSlot = DAG.CreateStackTemporary(Outs[i].ArgVT);
@@ -974,7 +993,16 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
     Chain = RetValue.getValue(1);
     Glue = RetValue.getValue(2);
 
-    assert(VA.getLocInfo() == CCValAssign::Full && "Unknown loc info!");
+    switch (VA.getLocInfo()) {
+    default:
+      llvm_unreachable("Unknown loc info!");
+    case CCValAssign::Full:
+      break;
+    case CCValAssign::BCvt:
+      RetValue = DAG.getNode(ISD::BITCAST, DL, VA.getValVT(), RetValue);
+      break;
+    }
+
     InVals.push_back(RetValue);
   }
 
@@ -994,6 +1022,22 @@ bool RISCVTargetLowering::CanLowerReturn(
       return false;
   }
   return true;
+}
+
+static SDValue packIntoRegLoc(SelectionDAG &DAG, SDValue Val,
+                              const CCValAssign &VA, const SDLoc &DL) {
+  EVT LocVT = VA.getLocVT();
+
+  switch (VA.getLocInfo()) {
+  default:
+    llvm_unreachable("Unexpected CCValAssign::LocInfo");
+  case CCValAssign::Full:
+    break;
+  case CCValAssign::BCvt:
+    Val = DAG.getNode(ISD::BITCAST, DL, LocVT, Val);
+    break;
+  }
+  return Val;
 }
 
 SDValue
@@ -1020,8 +1064,7 @@ RISCVTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
     SDValue Val = OutVals[i];
     CCValAssign &VA = RVLocs[i];
     assert(VA.isRegLoc() && "Can only return in registers!");
-    assert(VA.getLocInfo() == CCValAssign::Full &&
-           "Unexpected CCValAssign::LocInfo");
+    Val = packIntoRegLoc(DAG, Val, VA, DL);
 
     Chain = DAG.getCopyToReg(Chain, DL, VA.getLocReg(), Val, Flag);
 
