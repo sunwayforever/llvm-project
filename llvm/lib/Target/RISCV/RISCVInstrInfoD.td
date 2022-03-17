@@ -230,4 +230,14 @@ def : Pat<(setuo FPR64:$rs1, FPR64:$rs2),
 
 def Select_FPR64_Using_CC_GPR : SelectCC_rrirr<FPR64, GPR>;
 
+/// Loads
+
+defm : LdPat<load, FLD>;
+
+/// Stores
+
+def : Pat<(store FPR64:$rs2, GPR:$rs1), (FSD FPR64:$rs2, GPR:$rs1, 0)>;
+def : Pat<(store FPR64:$rs2, (add GPR:$rs1, simm12:$imm12)),
+            (FSD FPR64:$rs2, GPR:$rs1, simm12:$imm12)>;
+
 } // Predicates = [HasStdExtD]

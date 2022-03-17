@@ -72,14 +72,9 @@ define void @br_fcmp_oeq_alt(double %a, double %b) nounwind {
 ; RV32IFD-NEXT:    sw a1, 20(sp)
 ; RV32IFD-NEXT:    sw a0, 16(sp)
 ; RV32IFD-NEXT:    fld ft0, 8(sp)
-; RV32IFD-NEXT:    feq.d a0, ft0, ft0
 ; RV32IFD-NEXT:    fld ft1, 16(sp)
-; RV32IFD-NEXT:    feq.d a1, ft1, ft1
-; RV32IFD-NEXT:    and a0, a1, a0
-; RV32IFD-NEXT:    feq.d a1, ft1, ft0
-; RV32IFD-NEXT:    xori a1, a1, 1
-; RV32IFD-NEXT:    sltiu a0, a0, 1
-; RV32IFD-NEXT:    or a0, a1, a0
+; RV32IFD-NEXT:    feq.d a0, ft1, ft0
+; RV32IFD-NEXT:    xori a0, a0, 1
 ; RV32IFD-NEXT:    beq a0, zero, .LBB2_2
 ; RV32IFD-NEXT:  # %bb.1: # %if.else
 ; RV32IFD-NEXT:    lw ra, 28(sp)
@@ -235,6 +230,8 @@ define void @br_fcmp_one(double %a, double %b) nounwind {
 ; RV32IFD-NEXT:    and a0, a1, a0
 ; RV32IFD-NEXT:    feq.d a1, ft1, ft0
 ; RV32IFD-NEXT:    xori a1, a1, -1
+; RV32IFD-NEXT:    sltiu a0, a0, 1
+; RV32IFD-NEXT:    xori a0, a0, 1
 ; RV32IFD-NEXT:    and a0, a1, a0
 ; RV32IFD-NEXT:    bne a0, zero, .LBB7_2
 ; RV32IFD-NEXT:  # %bb.1: # %if.else
@@ -268,6 +265,8 @@ define void @br_fcmp_ord(double %a, double %b) nounwind {
 ; RV32IFD-NEXT:    fld ft0, 16(sp)
 ; RV32IFD-NEXT:    feq.d a1, ft0, ft0
 ; RV32IFD-NEXT:    and a0, a1, a0
+; RV32IFD-NEXT:    sltiu a0, a0, 1
+; RV32IFD-NEXT:    xori a0, a0, 1
 ; RV32IFD-NEXT:    bne a0, zero, .LBB8_2
 ; RV32IFD-NEXT:  # %bb.1: # %if.else
 ; RV32IFD-NEXT:    lw ra, 28(sp)
@@ -326,18 +325,14 @@ define void @br_fcmp_ugt(double %a, double %b) nounwind {
 ; RV32IFD:       # %bb.0:
 ; RV32IFD-NEXT:    addi sp, sp, -32
 ; RV32IFD-NEXT:    sw ra, 28(sp)
-; RV32IFD-NEXT:    sw a1, 20(sp)
-; RV32IFD-NEXT:    sw a0, 16(sp)
 ; RV32IFD-NEXT:    sw a3, 12(sp)
 ; RV32IFD-NEXT:    sw a2, 8(sp)
-; RV32IFD-NEXT:    fld ft0, 16(sp)
-; RV32IFD-NEXT:    fld ft1, 8(sp)
-; RV32IFD-NEXT:    flt.d a0, ft1, ft0
-; RV32IFD-NEXT:    feq.d a1, ft1, ft1
-; RV32IFD-NEXT:    feq.d a2, ft0, ft0
-; RV32IFD-NEXT:    and a1, a2, a1
-; RV32IFD-NEXT:    sltiu a1, a1, 1
-; RV32IFD-NEXT:    or a0, a0, a1
+; RV32IFD-NEXT:    sw a1, 20(sp)
+; RV32IFD-NEXT:    sw a0, 16(sp)
+; RV32IFD-NEXT:    fld ft0, 8(sp)
+; RV32IFD-NEXT:    fld ft1, 16(sp)
+; RV32IFD-NEXT:    fle.d a0, ft1, ft0
+; RV32IFD-NEXT:    xori a0, a0, 1
 ; RV32IFD-NEXT:    bne a0, zero, .LBB10_2
 ; RV32IFD-NEXT:  # %bb.1: # %if.else
 ; RV32IFD-NEXT:    lw ra, 28(sp)
@@ -361,18 +356,14 @@ define void @br_fcmp_uge(double %a, double %b) nounwind {
 ; RV32IFD:       # %bb.0:
 ; RV32IFD-NEXT:    addi sp, sp, -32
 ; RV32IFD-NEXT:    sw ra, 28(sp)
-; RV32IFD-NEXT:    sw a1, 20(sp)
-; RV32IFD-NEXT:    sw a0, 16(sp)
 ; RV32IFD-NEXT:    sw a3, 12(sp)
 ; RV32IFD-NEXT:    sw a2, 8(sp)
-; RV32IFD-NEXT:    fld ft0, 16(sp)
-; RV32IFD-NEXT:    fld ft1, 8(sp)
-; RV32IFD-NEXT:    fle.d a0, ft1, ft0
-; RV32IFD-NEXT:    feq.d a1, ft1, ft1
-; RV32IFD-NEXT:    feq.d a2, ft0, ft0
-; RV32IFD-NEXT:    and a1, a2, a1
-; RV32IFD-NEXT:    sltiu a1, a1, 1
-; RV32IFD-NEXT:    or a0, a0, a1
+; RV32IFD-NEXT:    sw a1, 20(sp)
+; RV32IFD-NEXT:    sw a0, 16(sp)
+; RV32IFD-NEXT:    fld ft0, 8(sp)
+; RV32IFD-NEXT:    fld ft1, 16(sp)
+; RV32IFD-NEXT:    flt.d a0, ft1, ft0
+; RV32IFD-NEXT:    xori a0, a0, 1
 ; RV32IFD-NEXT:    bne a0, zero, .LBB11_2
 ; RV32IFD-NEXT:  # %bb.1: # %if.else
 ; RV32IFD-NEXT:    lw ra, 28(sp)
@@ -396,18 +387,14 @@ define void @br_fcmp_ult(double %a, double %b) nounwind {
 ; RV32IFD:       # %bb.0:
 ; RV32IFD-NEXT:    addi sp, sp, -32
 ; RV32IFD-NEXT:    sw ra, 28(sp)
-; RV32IFD-NEXT:    sw a3, 12(sp)
-; RV32IFD-NEXT:    sw a2, 8(sp)
 ; RV32IFD-NEXT:    sw a1, 20(sp)
 ; RV32IFD-NEXT:    sw a0, 16(sp)
-; RV32IFD-NEXT:    fld ft0, 8(sp)
-; RV32IFD-NEXT:    fld ft1, 16(sp)
-; RV32IFD-NEXT:    flt.d a0, ft1, ft0
-; RV32IFD-NEXT:    feq.d a1, ft0, ft0
-; RV32IFD-NEXT:    feq.d a2, ft1, ft1
-; RV32IFD-NEXT:    and a1, a2, a1
-; RV32IFD-NEXT:    sltiu a1, a1, 1
-; RV32IFD-NEXT:    or a0, a0, a1
+; RV32IFD-NEXT:    sw a3, 12(sp)
+; RV32IFD-NEXT:    sw a2, 8(sp)
+; RV32IFD-NEXT:    fld ft0, 16(sp)
+; RV32IFD-NEXT:    fld ft1, 8(sp)
+; RV32IFD-NEXT:    fle.d a0, ft1, ft0
+; RV32IFD-NEXT:    xori a0, a0, 1
 ; RV32IFD-NEXT:    bne a0, zero, .LBB12_2
 ; RV32IFD-NEXT:  # %bb.1: # %if.else
 ; RV32IFD-NEXT:    lw ra, 28(sp)
@@ -431,18 +418,14 @@ define void @br_fcmp_ule(double %a, double %b) nounwind {
 ; RV32IFD:       # %bb.0:
 ; RV32IFD-NEXT:    addi sp, sp, -32
 ; RV32IFD-NEXT:    sw ra, 28(sp)
-; RV32IFD-NEXT:    sw a3, 12(sp)
-; RV32IFD-NEXT:    sw a2, 8(sp)
 ; RV32IFD-NEXT:    sw a1, 20(sp)
 ; RV32IFD-NEXT:    sw a0, 16(sp)
-; RV32IFD-NEXT:    fld ft0, 8(sp)
-; RV32IFD-NEXT:    fld ft1, 16(sp)
-; RV32IFD-NEXT:    fle.d a0, ft1, ft0
-; RV32IFD-NEXT:    feq.d a1, ft0, ft0
-; RV32IFD-NEXT:    feq.d a2, ft1, ft1
-; RV32IFD-NEXT:    and a1, a2, a1
-; RV32IFD-NEXT:    sltiu a1, a1, 1
-; RV32IFD-NEXT:    or a0, a0, a1
+; RV32IFD-NEXT:    sw a3, 12(sp)
+; RV32IFD-NEXT:    sw a2, 8(sp)
+; RV32IFD-NEXT:    fld ft0, 16(sp)
+; RV32IFD-NEXT:    fld ft1, 8(sp)
+; RV32IFD-NEXT:    flt.d a0, ft1, ft0
+; RV32IFD-NEXT:    xori a0, a0, 1
 ; RV32IFD-NEXT:    bne a0, zero, .LBB13_2
 ; RV32IFD-NEXT:  # %bb.1: # %if.else
 ; RV32IFD-NEXT:    lw ra, 28(sp)
@@ -471,14 +454,9 @@ define void @br_fcmp_une(double %a, double %b) nounwind {
 ; RV32IFD-NEXT:    sw a1, 20(sp)
 ; RV32IFD-NEXT:    sw a0, 16(sp)
 ; RV32IFD-NEXT:    fld ft0, 8(sp)
-; RV32IFD-NEXT:    feq.d a0, ft0, ft0
 ; RV32IFD-NEXT:    fld ft1, 16(sp)
-; RV32IFD-NEXT:    feq.d a1, ft1, ft1
-; RV32IFD-NEXT:    and a0, a1, a0
-; RV32IFD-NEXT:    feq.d a1, ft1, ft0
-; RV32IFD-NEXT:    xori a1, a1, 1
-; RV32IFD-NEXT:    sltiu a0, a0, 1
-; RV32IFD-NEXT:    or a0, a1, a0
+; RV32IFD-NEXT:    feq.d a0, ft1, ft0
+; RV32IFD-NEXT:    xori a0, a0, 1
 ; RV32IFD-NEXT:    bne a0, zero, .LBB14_2
 ; RV32IFD-NEXT:  # %bb.1: # %if.else
 ; RV32IFD-NEXT:    lw ra, 28(sp)
