@@ -61,6 +61,7 @@ void RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   MachineInstr &MI = *II;
   MachineFunction &MF = *MI.getParent()->getParent();
+  const auto &Subtarget = MF.getSubtarget<RISCVSubtarget>();
   MachineRegisterInfo &MRI = MF.getRegInfo();
   const RISCVInstrInfo *TII = MF.getSubtarget<RISCVSubtarget>().getInstrInfo();
   DebugLoc DL = MI.getDebugLoc();

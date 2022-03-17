@@ -26,7 +26,6 @@ def SDT_RISCVSelectCC     : SDTypeProfile<1, 5, [SDTCisSameAs<1, 2>,
                                                  SDTCisSameAs<0, 4>,
                                                  SDTCisSameAs<4, 5>]>;
 
-
 def Call         : SDNode<"RISCVISD::CALL", SDT_RISCVCall,
                           [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue,
                            SDNPVariadic]>;
@@ -126,6 +125,7 @@ def ixlenimm : Operand<XLenVT>;
 
 // Standalone (codegen-only) immleaf patterns.
 def simm32 : ImmLeaf<XLenVT, [{return isInt<32>(Imm);}]>;
+def simm64 : ImmLeaf<XLenVT, [{return isInt<64>(Imm);}]>;
 
 // Addressing modes.
 // Necessary because a frameindex can't be matched directly in a pattern.
@@ -143,6 +143,23 @@ def LO12Sext : SDNodeXForm<imm, [{
 // or ld/st being negative.
 def HI20 : SDNodeXForm<imm, [{
   return CurDAG->getTargetConstant(((N->getZExtValue()+0x800) >> 12) & 0xfffff,
+                                   SDLoc(N), N->getValueType(0));
+}]>;
+
+// Extract least significant 12 bits from the upper half of an immediate value
+// and sign extend them.
+def HLO12Sext : SDNodeXForm<imm, [{
+  uint64_t Val = N->getZExtValue() >> 32;
+  return CurDAG->getTargetConstant(SignExtend64<12>(Val),
+                                   SDLoc(N), N->getValueType(0));
+}]>;
+
+// Extract the most significant 20 bits from the upper half of an immediate
+// value. Add 1 if bit 32+11 is 1, to compensate for the low 12 bits in the
+// matching immediate addi or ld/st being negative.
+def HHI20 : SDNodeXForm<imm, [{
+  uint64_t Val = N->getZExtValue() >> 32;
+  return CurDAG->getTargetConstant(((Val+0x800) >> 12) & 0xfffff,
                                    SDLoc(N), N->getValueType(0));
 }]>;
 
@@ -361,7 +378,8 @@ def IsOrAdd: PatFrag<(ops node:$A, node:$B), (or node:$A, node:$B), [{
 
 def : Pat<(simm12:$imm), (ADDI X0, simm12:$imm)>;
 // TODO: Add a pattern for immediates with all zeroes in the lower 12 bits.
-def : Pat<(simm32:$imm), (ADDI (LUI (HI20 imm:$imm)), (LO12Sext imm:$imm))>;
+def : Pat<(simm32:$imm), (ADDI (LUI (HI20 imm:$imm)), (LO12Sext imm:$imm))>,
+      Requires<[IsRV32]>;
 
 /// Simple arithmetic operations
 
@@ -481,7 +499,7 @@ defm : LdPat<sextloadi8, LB>;
 defm : LdPat<extloadi8, LB>;
 defm : LdPat<sextloadi16, LH>;
 defm : LdPat<extloadi16, LH>;
-defm : LdPat<load, LW>;
+defm : LdPat<load, LW>, Requires<[IsRV32]>;
 defm : LdPat<zextloadi8, LBU>;
 defm : LdPat<zextloadi16, LHU>;
 
@@ -500,7 +518,7 @@ multiclass StPat<PatFrag StoreOp, RVInst Inst> {
 
 defm : StPat<truncstorei8, SB>;
 defm : StPat<truncstorei16, SH>;
-defm : StPat<store, SW>;
+defm : StPat<store, SW>, Requires<[IsRV32]>;
 
 /// Other pseudo-instructions
 
@@ -511,6 +529,47 @@ def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i32imm:$amt1, i32imm:$amt2),
 def ADJCALLSTACKUP   : Pseudo<(outs), (ins i32imm:$amt1, i32imm:$amt2),
                               [(CallSeqEnd timm:$amt1, timm:$amt2)]>;
 } // Defs = [X2], Uses = [X2]
+
+/// RV64 patterns
+
+let Predicates = [IsRV64] in {
+def : Pat<(simm32:$imm), (ADDIW (LUI (HI20 imm:$imm)), (LO12Sext imm:$imm))>;
+// TODO: add better patterns for loading 64-bit immediates
+def : Pat<(simm64:$imm), (OR (SLLI (ADDIW (LUI (HHI20 imm:$imm)),
+                                           (HLO12Sext imm:$imm)),
+                                   (i64 32)),
+                             (SRLI (SLLI (ADDIW (LUI (HI20 imm:$imm)),
+                                          (LO12Sext imm:$imm)),
+                                    32),
+                              32))>;
+
+def : Pat<(sext_inreg (add GPR:$rs1, simm12:$imm12), i32),
+          (ADDIW GPR:$rs1, simm12:$imm12)>;
+// sext.w
+def : Pat<(sext_inreg GPR:$rs1, i32), (ADDIW GPR:$rs1, 0)>;
+
+def : Pat<(sext_inreg (shl GPR:$rs1, uimm5:$shamt), i32),
+          (SLLIW GPR:$rs1, uimm5:$shamt)>;
+// TODO: Patterns for SRLIW, SRAIW
+def : Pat<(sext_inreg (add GPR:$rs1, GPR:$rs2), i32),
+          (ADDW GPR:$rs1, GPR:$rs2)>;
+def : Pat<(sext_inreg (sub GPR:$rs1, GPR:$rs2), i32),
+          (SUBW GPR:$rs1, GPR:$rs2)>;
+def : Pat<(sext_inreg (shl GPR:$rs1, GPR:$rs2), i32),
+          (SLLW GPR:$rs1, GPR:$rs2)>;
+def : Pat<(srl (and GPR:$rs1, 0xffffffff), GPR:$rs2),
+          (SRLW GPR:$rs1, GPR:$rs2)>;
+def : Pat<(sra (sext_inreg GPR:$rs1, i32), GPR:$rs2),
+          (SRAW GPR:$rs1, GPR:$rs2)>;
+
+defm : LdPat<sextloadi32, LW>;
+defm : LdPat<extloadi32, LW>;
+defm : LdPat<zextloadi32, LWU>;
+defm : LdPat<load, LD>;
+
+defm : StPat<truncstorei32, SW>;
+defm : StPat<store, SD>;
+} // Predicates = [IsRV64]
 
 //===----------------------------------------------------------------------===//
 // Standard extensions

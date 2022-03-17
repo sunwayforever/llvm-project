@@ -29,8 +29,9 @@
 
 using namespace llvm;
 
-RISCVInstrInfo::RISCVInstrInfo()
-    : RISCVGenInstrInfo(RISCV::ADJCALLSTACKDOWN, RISCV::ADJCALLSTACKUP) {}
+RISCVInstrInfo::RISCVInstrInfo(const RISCVSubtarget &Subtarget)
+    : RISCVGenInstrInfo(RISCV::ADJCALLSTACKDOWN, RISCV::ADJCALLSTACKUP),
+      Subtarget(Subtarget) {}
 
 void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator MBBI,
@@ -53,13 +54,15 @@ void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
   if (I != MBB.end())
     DL = I->getDebugLoc();
 
-  if (RISCV::GPRRegClass.hasSubClassEq(RC))
-    BuildMI(MBB, I, DL, get(RISCV::SW))
+  if (RISCV::GPRRegClass.hasSubClassEq(RC)) {
+    unsigned Opcode = Subtarget.is64Bit() ? RISCV::SD : RISCV::SW;
+    BuildMI(MBB, I, DL, get(Opcode))
         .addReg(SrcReg, getKillRegState(IsKill))
         .addFrameIndex(FI)
         .addImm(0);
-  else
+  } else {
     llvm_unreachable("Can't store this register to stack slot");
+  }
 }
 
 void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
@@ -71,10 +74,12 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
   if (I != MBB.end())
     DL = I->getDebugLoc();
 
-  if (RISCV::GPRRegClass.hasSubClassEq(RC))
-    BuildMI(MBB, I, DL, get(RISCV::LW), DstReg).addFrameIndex(FI).addImm(0);
-  else
+  if (RISCV::GPRRegClass.hasSubClassEq(RC)) {
+    unsigned Opcode = Subtarget.is64Bit() ? RISCV::LD : RISCV::LW;
+    BuildMI(MBB, I, DL, get(Opcode), DstReg).addFrameIndex(FI).addImm(0);
+  } else {
     llvm_unreachable("Can't load this register from stack slot");
+  }
 }
 
 void RISCVInstrInfo::movImm32(MachineBasicBlock &MBB,
@@ -282,9 +287,8 @@ unsigned RISCVInstrInfo::insertIndirectBranch(MachineBasicBlock &MBB,
   MachineFunction *MF = MBB.getParent();
   MachineRegisterInfo &MRI = MF->getRegInfo();
   const auto &TM = static_cast<const RISCVTargetMachine &>(MF->getTarget());
-  const auto &STI = MF->getSubtarget<RISCVSubtarget>();
 
-  if (TM.isPositionIndependent() || STI.is64Bit())
+  if (TM.isPositionIndependent())
     report_fatal_error("Unable to insert indirect branch");
 
   if (!isInt<32>(BrOffset))

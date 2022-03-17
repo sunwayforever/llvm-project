@@ -22,10 +22,13 @@
 
 namespace llvm {
 
+class RISCVSubtarget;
+
 class RISCVInstrInfo : public RISCVGenInstrInfo {
+  const RISCVSubtarget &Subtarget;
 
 public:
-  RISCVInstrInfo();
+  explicit RISCVInstrInfo(const RISCVSubtarget &Subtarget);
 
   void copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator MBBI,
                    const DebugLoc &DL, unsigned DstReg, unsigned SrcReg,
