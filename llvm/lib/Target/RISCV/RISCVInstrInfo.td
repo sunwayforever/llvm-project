@@ -467,3 +467,4 @@ def ADJCALLSTACKUP   : Pseudo<(outs), (ins i32imm:$amt1, i32imm:$amt2),
 //===----------------------------------------------------------------------===//
 
 include "RISCVInstrInfoM.td"
+include "RISCVInstrInfoA.td"
