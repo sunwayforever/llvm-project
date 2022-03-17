@@ -21,3 +21,94 @@ define double @fadd_d(double %a, double %b) nounwind {
   %1 = fadd double %a, %b
   ret double %1
 }
+
+define double @fsub_d(double %a, double %b) nounwind {
+  %1 = fsub double %a, %b
+  ret double %1
+}
+
+define double @fmul_d(double %a, double %b) nounwind {
+  %1 = fmul double %a, %b
+  ret double %1
+}
+
+define double @fdiv_d(double %a, double %b) nounwind {
+  %1 = fdiv double %a, %b
+  ret double %1
+}
+
+declare double @llvm.sqrt.f32(double)
+
+define double @fsqrt_d(double %a) nounwind {
+  %1 = call double @llvm.sqrt.f32(double %a)
+  ret double %1
+}
+
+declare double @llvm.copysign.f32(double, double)
+
+define double @fsgnj_d(double %a, double %b) nounwind {
+  %1 = call double @llvm.copysign.f32(double %a, double %b)
+  ret double %1
+}
+
+define double @fneg_d(double %a) nounwind {
+; TODO: doesn't test the fneg selection pattern because
+; DAGCombiner::visitBITCAST will generate a xor on the incoming integer
+; argument
+  %1 = fsub double -0.0, %a
+  ret double %1
+}
+
+define double @fsgnjn_d(double %a, double %b) nounwind {
+; TODO: fsgnjn.s isn't selected because DAGCombiner::visitBITCAST will convert
+; (bitconvert (fneg x)) to a xor
+  %1 = fsub double -0.0, %b
+  %2 = call double @llvm.copysign.f32(double %a, double %1)
+  ret double %2
+}
+
+declare double @llvm.fabs.f32(double)
+
+define double @fabs_d(double %a) nounwind {
+; TODO: doesn't test the fabs selection pattern because
+; DAGCombiner::visitBITCAST will generate an and on the incoming integer
+; argument
+  %1 = call double @llvm.fabs.f32(double %a)
+  ret double %1
+}
+
+; TODO: implement a test for fsgnjx
+;define double @fsgnjx_d(double %a, double %b) nounwind {
+;}
+
+declare double @llvm.minnum.f32(double, double)
+
+define double @fmin_d(double %a, double %b) nounwind {
+  %1 = call double @llvm.minnum.f32(double %a, double %b)
+  ret double %1
+}
+
+declare double @llvm.maxnum.f32(double, double)
+
+define double @fmax_d(double %a, double %b) nounwind {
+  %1 = call double @llvm.maxnum.f32(double %a, double %b)
+  ret double %1
+}
+
+define i32 @feq_d(double %a, double %b) nounwind {
+  %1 = fcmp oeq double %a, %b
+  %2 = zext i1 %1 to i32
+  ret i32 %2
+}
+
+define i32 @flt_d(double %a, double %b) nounwind {
+  %1 = fcmp olt double %a, %b
+  %2 = zext i1 %1 to i32
+  ret i32 %2
+}
+
+define i32 @fle_d(double %a, double %b) nounwind {
+  %1 = fcmp ole double %a, %b
+  %2 = zext i1 %1 to i32
+  ret i32 %2
+}
