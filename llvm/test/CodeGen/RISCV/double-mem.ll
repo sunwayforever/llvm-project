@@ -13,7 +13,7 @@ define double @fld(double *%a) nounwind {
 ; RV32IFD-NEXT:    lw a0, 8(sp)
 ; RV32IFD-NEXT:    lw a1, 12(sp)
 ; RV32IFD-NEXT:    addi sp, sp, 16
-; RV32IFD-NEXT:    jalr zero, ra, 0
+; RV32IFD-NEXT:    ret
   %1 = load double, double* %a
   %2 = getelementptr double, double* %a, i32 3
   %3 = load double, double* %2
@@ -39,7 +39,7 @@ define void @fsd(double *%a, double %b, double %c) nounwind {
 ; RV32IFD-NEXT:    fsd ft0, 64(a0)
 ; RV32IFD-NEXT:    fsd ft0, 0(a0)
 ; RV32IFD-NEXT:    addi sp, sp, 16
-; RV32IFD-NEXT:    jalr zero, ra, 0
+; RV32IFD-NEXT:    ret
   %1 = fadd double %b, %c
   store double %1, double* %a
   %2 = getelementptr double, double* %a, i32 8
@@ -73,7 +73,7 @@ define double @fld_fsd_global(double %a, double %b) nounwind {
 ; RV32IFD-NEXT:    lw a0, 8(sp)
 ; RV32IFD-NEXT:    lw a1, 12(sp)
 ; RV32IFD-NEXT:    addi sp, sp, 32
-; RV32IFD-NEXT:    jalr zero, ra, 0
+; RV32IFD-NEXT:    ret
   %1 = fadd double %a, %b
   %2 = load volatile double, double* @G
   store double %1, double* @G
@@ -99,7 +99,7 @@ define double @fld_fsd_constant(double %a) nounwind {
 ; RV32IFD-NEXT:    lw a0, 0(sp)
 ; RV32IFD-NEXT:    lw a1, 4(sp)
 ; RV32IFD-NEXT:    addi sp, sp, 16
-; RV32IFD-NEXT:    jalr zero, ra, 0
+; RV32IFD-NEXT:    ret
   %1 = inttoptr i32 3735928559 to double*
   %2 = load volatile double, double* %1
   %3 = fadd double %a, %2
@@ -120,7 +120,7 @@ define double @fld_stack(double %a) nounwind {
 ; RV32IFD-NEXT:    lui a0, %hi(notdead)
 ; RV32IFD-NEXT:    addi a1, a0, %lo(notdead)
 ; RV32IFD-NEXT:    addi a0, sp, 16
-; RV32IFD-NEXT:    jalr ra, a1, 0
+; RV32IFD-NEXT:    jalr a1
 ; RV32IFD-NEXT:    fld ft0, 8(sp)
 ; RV32IFD-NEXT:    fld ft1, 16(sp)
 ; RV32IFD-NEXT:    fadd.d ft0, ft1, ft0
@@ -129,7 +129,7 @@ define double @fld_stack(double %a) nounwind {
 ; RV32IFD-NEXT:    lw a1, 4(sp)
 ; RV32IFD-NEXT:    lw ra, 28(sp)
 ; RV32IFD-NEXT:    addi sp, sp, 32
-; RV32IFD-NEXT:    jalr zero, ra, 0
+; RV32IFD-NEXT:    ret
   %1 = alloca double, align 8
   %2 = bitcast double* %1 to i8*
   call void @notdead(i8* %2)
@@ -155,10 +155,10 @@ define void @fsd_stack(double %a, double %b) nounwind {
 ; RV32IFD-NEXT:    lui a0, %hi(notdead)
 ; RV32IFD-NEXT:    addi a1, a0, %lo(notdead)
 ; RV32IFD-NEXT:    addi a0, sp, 16
-; RV32IFD-NEXT:    jalr ra, a1, 0
+; RV32IFD-NEXT:    jalr a1
 ; RV32IFD-NEXT:    lw ra, 28(sp)
 ; RV32IFD-NEXT:    addi sp, sp, 32
-; RV32IFD-NEXT:    jalr zero, ra, 0
+; RV32IFD-NEXT:    ret
   %1 = fadd double %a, %b ; force store from FPR64
   %2 = alloca double, align 8
   store double %1, double* %2
@@ -178,7 +178,7 @@ define void @fsd_trunc(float* %a, double %b) nounwind noinline optnone {
 ; RV32IFD-NEXT:    fcvt.s.d ft0, ft0
 ; RV32IFD-NEXT:    fsw ft0, 0(a0)
 ; RV32IFD-NEXT:    addi sp, sp, 16
-; RV32IFD-NEXT:    jalr zero, ra, 0
+; RV32IFD-NEXT:    ret
   %1 = fptrunc double %b to float
   store float %1, float* %a, align 4
   ret void

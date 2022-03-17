@@ -12,7 +12,7 @@ define float @fmadd_s_fma_intrinsic(float %a, float %b, float %c) nounwind {
 ; RV32IF-NEXT:    fmv.w.x ft2, a0
 ; RV32IF-NEXT:    fmadd.s ft0, ft2, ft1, ft0
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = call float @llvm.fma.f32(float %a, float %b, float %c)
   ret float %1
 }
@@ -29,7 +29,7 @@ define float @fmadd_s_fmuladd_intrinsic(float %a, float %b, float %c) nounwind {
 ; RV32IF-NEXT:    fmv.w.x ft1, a2
 ; RV32IF-NEXT:    fadd.s ft0, ft0, ft1
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = call float @llvm.fmuladd.f32(float %a, float %b, float %c)
   ret float %1
 }
@@ -40,14 +40,14 @@ define float @fmsub_s_fma_intrinsic(float %a, float %b, float %c) nounwind {
 ; RV32IF-LABEL: fmsub_s_fma_intrinsic:
 ; RV32IF:       # %bb.0:
 ; RV32IF-NEXT:    lui a3, 524288
-; RV32IF-NEXT:    addi a3, a3, 0
+; RV32IF-NEXT:    mv a3, a3
 ; RV32IF-NEXT:    xor a2, a2, a3
 ; RV32IF-NEXT:    fmv.w.x ft0, a2
 ; RV32IF-NEXT:    fmv.w.x ft1, a1
 ; RV32IF-NEXT:    fmv.w.x ft2, a0
 ; RV32IF-NEXT:    fmadd.s ft0, ft2, ft1, ft0
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = fsub float -0.00, %c
   %2 = call float @llvm.fma.f32(float %a, float %b, float %1)
   ret float %2

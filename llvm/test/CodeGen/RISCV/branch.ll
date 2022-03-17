@@ -37,11 +37,11 @@ define void @foo(i32 %a, i32 *%b, i1 %c) {
 ; RV32I-NEXT:  # %bb.10: # %test11
 ; RV32I-NEXT:    lw a0, 0(a1)
 ; RV32I-NEXT:    andi a0, a2, 1
-; RV32I-NEXT:    bne a0, zero, .LBB0_12
+; RV32I-NEXT:    bnez a0, .LBB0_12
 ; RV32I-NEXT:  # %bb.11: # %test12
 ; RV32I-NEXT:    lw a0, 0(a1)
 ; RV32I-NEXT:  .LBB0_12: # %end
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
 
   %val1 = load volatile i32, i32* %b
   %tst1 = icmp eq i32 %val1, %a

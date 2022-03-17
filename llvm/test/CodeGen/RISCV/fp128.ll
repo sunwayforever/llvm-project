@@ -41,12 +41,12 @@ define i32 @test_load_and_cmp() nounwind {
 ; RV32I-NEXT:    addi a2, a0, %lo(__netf2)
 ; RV32I-NEXT:    addi a0, sp, 24
 ; RV32I-NEXT:    addi a1, sp, 8
-; RV32I-NEXT:    jalr ra, a2, 0
+; RV32I-NEXT:    jalr a2
 ; RV32I-NEXT:    xor a0, a0, zero
-; RV32I-NEXT:    sltu a0, zero, a0
+; RV32I-NEXT:    snez a0, a0
 ; RV32I-NEXT:    lw ra, 44(sp)
 ; RV32I-NEXT:    addi sp, sp, 48
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
   %1 = load fp128, fp128* @x, align 16
   %2 = load fp128, fp128* @y, align 16
   %cmp = fcmp une fp128 %1, %2
@@ -88,7 +88,7 @@ define i32 @test_add_and_fptosi() nounwind {
 ; RV32I-NEXT:    addi a0, sp, 56
 ; RV32I-NEXT:    addi a1, sp, 40
 ; RV32I-NEXT:    addi a2, sp, 24
-; RV32I-NEXT:    jalr ra, a3, 0
+; RV32I-NEXT:    jalr a3
 ; RV32I-NEXT:    lw a0, 68(sp)
 ; RV32I-NEXT:    sw a0, 20(sp)
 ; RV32I-NEXT:    lw a0, 64(sp)
@@ -100,10 +100,10 @@ define i32 @test_add_and_fptosi() nounwind {
 ; RV32I-NEXT:    lui a0, %hi(__fixtfsi)
 ; RV32I-NEXT:    addi a1, a0, %lo(__fixtfsi)
 ; RV32I-NEXT:    addi a0, sp, 8
-; RV32I-NEXT:    jalr ra, a1, 0
+; RV32I-NEXT:    jalr a1
 ; RV32I-NEXT:    lw ra, 76(sp)
 ; RV32I-NEXT:    addi sp, sp, 80
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
   %1 = load fp128, fp128* @x, align 16
   %2 = load fp128, fp128* @y, align 16
   %3 = fadd fp128 %1, %2

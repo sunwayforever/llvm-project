@@ -7,7 +7,7 @@ define float @float_imm() nounwind {
 ; RV32IF:       # %bb.0:
 ; RV32IF-NEXT:    lui a0, 263313
 ; RV32IF-NEXT:    addi a0, a0, -37
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   ret float 3.14159274101257324218750
 }
 
@@ -21,7 +21,7 @@ define float @float_imm_op(float %a) nounwind {
 ; RV32IF-NEXT:    flw ft1, 0(a0)
 ; RV32IF-NEXT:    fadd.s ft0, ft0, ft1
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = fadd float %a, 1.0
   ret float %1
 }

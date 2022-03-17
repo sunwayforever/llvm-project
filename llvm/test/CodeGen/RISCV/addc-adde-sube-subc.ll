@@ -13,13 +13,13 @@ define i64 @addc_adde(i64 %a, i64 %b) {
 ; RV32I-NEXT:    add a2, a0, a2
 ; RV32I-NEXT:    sltu a0, a2, a0
 ; RV32I-NEXT:    add a1, a1, a0
-; RV32I-NEXT:    addi a0, a2, 0
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    mv a0, a2
+; RV32I-NEXT:    ret
 ;
 ; RV64I-LABEL: addc_adde:
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    add a0, a0, a1
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = add i64 %a, %b
   ret i64 %1
 }
@@ -31,12 +31,12 @@ define i64 @subc_sube(i64 %a, i64 %b) {
 ; RV32I-NEXT:    sltu a3, a0, a2
 ; RV32I-NEXT:    sub a1, a1, a3
 ; RV32I-NEXT:    sub a0, a0, a2
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
 ;
 ; RV64I-LABEL: subc_sube:
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    sub a0, a0, a1
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = sub i64 %a, %b
   ret i64 %1
 }
@@ -71,7 +71,7 @@ define i128 @addc_adde128(i128 %a, i128 %b) {
 ; RV32I-NEXT:    add a1, a4, a1
 ; RV32I-NEXT:    add a1, a1, a3
 ; RV32I-NEXT:    sw a1, 12(a0)
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
 ;
 ; RV64I-LABEL: addc_adde128:
 ; RV64I:       # %bb.0:
@@ -79,8 +79,8 @@ define i128 @addc_adde128(i128 %a, i128 %b) {
 ; RV64I-NEXT:    add a2, a0, a2
 ; RV64I-NEXT:    sltu a0, a2, a0
 ; RV64I-NEXT:    add a1, a1, a0
-; RV64I-NEXT:    addi a0, a2, 0
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    mv a0, a2
+; RV64I-NEXT:    ret
   %1 = add i128 %a, %b
   ret i128 %1
 }
@@ -93,7 +93,7 @@ define i128 @subc_sube128(i128 %a, i128 %b) {
 ; RV32I-NEXT:    lw a5, 0(a2)
 ; RV32I-NEXT:    lw a7, 0(a1)
 ; RV32I-NEXT:    sltu t0, a7, a5
-; RV32I-NEXT:    addi a3, t0, 0
+; RV32I-NEXT:    mv a3, t0
 ; RV32I-NEXT:    beq a6, a4, .LBB3_2
 ; RV32I-NEXT:  # %bb.1:
 ; RV32I-NEXT:    sltu a3, a6, a4
@@ -116,7 +116,7 @@ define i128 @subc_sube128(i128 %a, i128 %b) {
 ; RV32I-NEXT:    sltu a2, a6, a3
 ; RV32I-NEXT:    sub a1, a1, a2
 ; RV32I-NEXT:    sw a1, 12(a0)
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
 ;
 ; RV64I-LABEL: subc_sube128:
 ; RV64I:       # %bb.0:
@@ -124,7 +124,7 @@ define i128 @subc_sube128(i128 %a, i128 %b) {
 ; RV64I-NEXT:    sltu a3, a0, a2
 ; RV64I-NEXT:    sub a1, a1, a3
 ; RV64I-NEXT:    sub a0, a0, a2
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = sub i128 %a, %b
   ret i128 %1
 }

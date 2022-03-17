@@ -13,11 +13,11 @@ define i8* @test_frameaddress_0() nounwind {
 ; RV32I-NEXT:    sw ra, 12(sp)
 ; RV32I-NEXT:    sw s0, 8(sp)
 ; RV32I-NEXT:    addi s0, sp, 16
-; RV32I-NEXT:    addi a0, s0, 0
+; RV32I-NEXT:    mv a0, s0
 ; RV32I-NEXT:    lw s0, 8(sp)
 ; RV32I-NEXT:    lw ra, 12(sp)
 ; RV32I-NEXT:    addi sp, sp, 16
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
   %1 = call i8* @llvm.frameaddress(i32 0)
   ret i8* %1
 }
@@ -34,7 +34,7 @@ define i8* @test_frameaddress_2() nounwind {
 ; RV32I-NEXT:    lw s0, 8(sp)
 ; RV32I-NEXT:    lw ra, 12(sp)
 ; RV32I-NEXT:    addi sp, sp, 16
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
   %1 = call i8* @llvm.frameaddress(i32 2)
   ret i8* %1
 }
@@ -49,14 +49,14 @@ define i8* @test_frameaddress_3_alloca() nounwind {
 ; RV32I-NEXT:    lui a0, %hi(notdead)
 ; RV32I-NEXT:    addi a1, a0, %lo(notdead)
 ; RV32I-NEXT:    addi a0, s0, -108
-; RV32I-NEXT:    jalr ra, a1, 0
+; RV32I-NEXT:    jalr a1
 ; RV32I-NEXT:    lw a0, -8(s0)
 ; RV32I-NEXT:    lw a0, -8(a0)
 ; RV32I-NEXT:    lw a0, -8(a0)
 ; RV32I-NEXT:    lw s0, 104(sp)
 ; RV32I-NEXT:    lw ra, 108(sp)
 ; RV32I-NEXT:    addi sp, sp, 112
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
   %1 = alloca [100 x i8]
   %2 = bitcast [100 x i8]* %1 to i8*
   call void @notdead(i8* %2)
@@ -67,8 +67,8 @@ define i8* @test_frameaddress_3_alloca() nounwind {
 define i8* @test_returnaddress_0() nounwind {
 ; RV32I-LABEL: test_returnaddress_0:
 ; RV32I:       # %bb.0:
-; RV32I-NEXT:    addi a0, ra, 0
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    mv a0, ra
+; RV32I-NEXT:    ret
   %1 = call i8* @llvm.returnaddress(i32 0)
   ret i8* %1
 }
@@ -86,7 +86,7 @@ define i8* @test_returnaddress_2() nounwind {
 ; RV32I-NEXT:    lw s0, 8(sp)
 ; RV32I-NEXT:    lw ra, 12(sp)
 ; RV32I-NEXT:    addi sp, sp, 16
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
   %1 = call i8* @llvm.returnaddress(i32 2)
   ret i8* %1
 }

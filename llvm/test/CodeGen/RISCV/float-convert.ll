@@ -7,7 +7,7 @@ define i32 @fcvt_w_s(float %a) nounwind {
 ; RV32IF:       # %bb.0:
 ; RV32IF-NEXT:    fmv.w.x ft0, a0
 ; RV32IF-NEXT:    fcvt.w.s a0, ft0, rtz
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = fptosi float %a to i32
   ret i32 %1
 }
@@ -17,7 +17,7 @@ define i32 @fcvt_wu_s(float %a) nounwind {
 ; RV32IF:       # %bb.0:
 ; RV32IF-NEXT:    fmv.w.x ft0, a0
 ; RV32IF-NEXT:    fcvt.wu.s a0, ft0, rtz
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = fptoui float %a to i32
   ret i32 %1
 }
@@ -30,7 +30,7 @@ define i32 @fmv_x_w(float %a, float %b) nounwind {
 ; RV32IF-NEXT:    fmv.w.x ft1, a0
 ; RV32IF-NEXT:    fadd.s ft0, ft1, ft0
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = fadd float %a, %b
   %2 = bitcast float %1 to i32
   ret i32 %2
@@ -41,7 +41,7 @@ define float @fcvt_s_w(i32 %a) nounwind {
 ; RV32IF:       # %bb.0:
 ; RV32IF-NEXT:    fcvt.s.w ft0, a0
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = sitofp i32 %a to float
   ret float %1
 }
@@ -51,7 +51,7 @@ define float @fcvt_s_wu(i32 %a) nounwind {
 ; RV32IF:       # %bb.0:
 ; RV32IF-NEXT:    fcvt.s.wu ft0, a0
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = uitofp i32 %a to float
   ret float %1
 }
@@ -64,7 +64,7 @@ define float @fmv_w_x(i32 %a, i32 %b) nounwind {
 ; RV32IF-NEXT:    fmv.w.x ft1, a0
 ; RV32IF-NEXT:    fadd.s ft0, ft1, ft0
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = bitcast i32 %a to float
   %2 = bitcast i32 %b to float
   %3 = fadd float %1, %2

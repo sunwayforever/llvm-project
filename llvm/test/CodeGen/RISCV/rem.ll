@@ -11,15 +11,15 @@ define i32 @urem(i32 %a, i32 %b) nounwind {
 ; RV32I-NEXT:    sw ra, 12(sp)
 ; RV32I-NEXT:    lui a2, %hi(__umodsi3)
 ; RV32I-NEXT:    addi a2, a2, %lo(__umodsi3)
-; RV32I-NEXT:    jalr ra, a2, 0
+; RV32I-NEXT:    jalr a2
 ; RV32I-NEXT:    lw ra, 12(sp)
 ; RV32I-NEXT:    addi sp, sp, 16
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
 ;
 ; RV32IM-LABEL: urem:
 ; RV32IM:       # %bb.0:
 ; RV32IM-NEXT:    remu a0, a0, a1
-; RV32IM-NEXT:    jalr zero, ra, 0
+; RV32IM-NEXT:    ret
   %1 = urem i32 %a, %b
   ret i32 %1
 }
@@ -31,15 +31,15 @@ define i32 @srem(i32 %a, i32 %b) nounwind {
 ; RV32I-NEXT:    sw ra, 12(sp)
 ; RV32I-NEXT:    lui a2, %hi(__modsi3)
 ; RV32I-NEXT:    addi a2, a2, %lo(__modsi3)
-; RV32I-NEXT:    jalr ra, a2, 0
+; RV32I-NEXT:    jalr a2
 ; RV32I-NEXT:    lw ra, 12(sp)
 ; RV32I-NEXT:    addi sp, sp, 16
-; RV32I-NEXT:    jalr zero, ra, 0
+; RV32I-NEXT:    ret
 ;
 ; RV32IM-LABEL: srem:
 ; RV32IM:       # %bb.0:
 ; RV32IM-NEXT:    rem a0, a0, a1
-; RV32IM-NEXT:    jalr zero, ra, 0
+; RV32IM-NEXT:    ret
   %1 = srem i32 %a, %b
   ret i32 %1
 }

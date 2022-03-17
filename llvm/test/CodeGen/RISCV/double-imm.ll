@@ -9,7 +9,7 @@ define double @double_imm() nounwind {
 ; RV32IFD-NEXT:    addi a0, a0, -744
 ; RV32IFD-NEXT:    lui a1, 262290
 ; RV32IFD-NEXT:    addi a1, a1, 507
-; RV32IFD-NEXT:    jalr zero, ra, 0
+; RV32IFD-NEXT:    ret
   ret double 3.1415926535897931159979634685441851615905761718750
 }
 
@@ -28,7 +28,7 @@ define double @double_imm_op(double %a) nounwind {
 ; RV32IFD-NEXT:    lw a0, 0(sp)
 ; RV32IFD-NEXT:    lw a1, 4(sp)
 ; RV32IFD-NEXT:    addi sp, sp, 16
-; RV32IFD-NEXT:    jalr zero, ra, 0
+; RV32IFD-NEXT:    ret
   %1 = fadd double %a, 1.0
   ret double %1
 }

@@ -19,11 +19,11 @@ define i32 @test() nounwind {
 ; RV32I-FPELIM-NEXT:    lui a0, %hi(test1)
 ; RV32I-FPELIM-NEXT:    addi a1, a0, %lo(test1)
 ; RV32I-FPELIM-NEXT:    addi a0, sp, 12
-; RV32I-FPELIM-NEXT:    jalr ra, a1, 0
-; RV32I-FPELIM-NEXT:    addi a0, zero, 0
+; RV32I-FPELIM-NEXT:    jalr a1
+; RV32I-FPELIM-NEXT:    mv a0, zero
 ; RV32I-FPELIM-NEXT:    lw ra, 28(sp)
 ; RV32I-FPELIM-NEXT:    addi sp, sp, 32
-; RV32I-FPELIM-NEXT:    jalr zero, ra, 0
+; RV32I-FPELIM-NEXT:    ret
 ;
 ; RV32I-WITHFP-LABEL: test:
 ; RV32I-WITHFP:       # %bb.0:
@@ -39,12 +39,12 @@ define i32 @test() nounwind {
 ; RV32I-WITHFP-NEXT:    lui a0, %hi(test1)
 ; RV32I-WITHFP-NEXT:    addi a1, a0, %lo(test1)
 ; RV32I-WITHFP-NEXT:    addi a0, s0, -28
-; RV32I-WITHFP-NEXT:    jalr ra, a1, 0
-; RV32I-WITHFP-NEXT:    addi a0, zero, 0
+; RV32I-WITHFP-NEXT:    jalr a1
+; RV32I-WITHFP-NEXT:    mv a0, zero
 ; RV32I-WITHFP-NEXT:    lw s0, 24(sp)
 ; RV32I-WITHFP-NEXT:    lw ra, 28(sp)
 ; RV32I-WITHFP-NEXT:    addi sp, sp, 32
-; RV32I-WITHFP-NEXT:    jalr zero, ra, 0
+; RV32I-WITHFP-NEXT:    ret
   %key = alloca %struct.key_t, align 4
   %1 = bitcast %struct.key_t* %key to i8*
   call void @llvm.memset.p0i8.i64(i8* %1, i8 0, i64 20, i32 4, i1 false)

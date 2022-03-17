@@ -9,7 +9,7 @@ define i64 @lb(i8 *%a) nounwind {
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    lb a1, 0(a0)
 ; RV64I-NEXT:    lb a0, 1(a0)
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = getelementptr i8, i8* %a, i32 1
   %2 = load i8, i8* %1
   %3 = sext i8 %2 to i64
@@ -23,7 +23,7 @@ define i64 @lh(i16 *%a) nounwind {
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    lh a1, 0(a0)
 ; RV64I-NEXT:    lh a0, 4(a0)
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = getelementptr i16, i16* %a, i32 2
   %2 = load i16, i16* %1
   %3 = sext i16 %2 to i64
@@ -37,7 +37,7 @@ define i64 @lw(i32 *%a) nounwind {
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    lw a1, 0(a0)
 ; RV64I-NEXT:    lw a0, 12(a0)
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = getelementptr i32, i32* %a, i32 3
   %2 = load i32, i32* %1
   %3 = sext i32 %2 to i64
@@ -52,7 +52,7 @@ define i64 @lbu(i8 *%a) nounwind {
 ; RV64I-NEXT:    lbu a1, 0(a0)
 ; RV64I-NEXT:    lbu a0, 4(a0)
 ; RV64I-NEXT:    add a0, a0, a1
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = getelementptr i8, i8* %a, i32 4
   %2 = load i8, i8* %1
   %3 = zext i8 %2 to i64
@@ -68,7 +68,7 @@ define i64 @lhu(i16 *%a) nounwind {
 ; RV64I-NEXT:    lhu a1, 0(a0)
 ; RV64I-NEXT:    lhu a0, 10(a0)
 ; RV64I-NEXT:    add a0, a0, a1
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = getelementptr i16, i16* %a, i32 5
   %2 = load i16, i16* %1
   %3 = zext i16 %2 to i64
@@ -84,7 +84,7 @@ define i64 @lwu(i32 *%a) nounwind {
 ; RV64I-NEXT:    lwu a1, 0(a0)
 ; RV64I-NEXT:    lwu a0, 24(a0)
 ; RV64I-NEXT:    add a0, a0, a1
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = getelementptr i32, i32* %a, i32 6
   %2 = load i32, i32* %1
   %3 = zext i32 %2 to i64
@@ -101,7 +101,7 @@ define void @sb(i8 *%a, i8 %b) nounwind {
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    sb a1, 7(a0)
 ; RV64I-NEXT:    sb a1, 0(a0)
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   store i8 %b, i8* %a
   %1 = getelementptr i8, i8* %a, i32 7
   store i8 %b, i8* %1
@@ -113,7 +113,7 @@ define void @sh(i16 *%a, i16 %b) nounwind {
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    sh a1, 16(a0)
 ; RV64I-NEXT:    sh a1, 0(a0)
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   store i16 %b, i16* %a
   %1 = getelementptr i16, i16* %a, i32 8
   store i16 %b, i16* %1
@@ -125,7 +125,7 @@ define void @sw(i32 *%a, i32 %b) nounwind {
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    sw a1, 36(a0)
 ; RV64I-NEXT:    sw a1, 0(a0)
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   store i32 %b, i32* %a
   %1 = getelementptr i32, i32* %a, i32 9
   store i32 %b, i32* %1
@@ -139,7 +139,7 @@ define i64 @ld(i64 *%a) nounwind {
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    ld a1, 0(a0)
 ; RV64I-NEXT:    ld a0, 80(a0)
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = getelementptr i64, i64* %a, i32 10
   %2 = load i64, i64* %1
   %3 = load volatile i64, i64* %a
@@ -151,7 +151,7 @@ define void @sd(i64 *%a, i64 %b) nounwind {
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT:    sd a1, 88(a0)
 ; RV64I-NEXT:    sd a1, 0(a0)
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   store i64 %b, i64* %a
   %1 = getelementptr i64, i64* %a, i32 11
   store i64 %b, i64* %1
@@ -167,7 +167,7 @@ define i64 @load_sext_zext_anyext_i1(i1 *%a) nounwind {
 ; RV64I-NEXT:    lbu a1, 1(a0)
 ; RV64I-NEXT:    lbu a0, 2(a0)
 ; RV64I-NEXT:    sub a0, a0, a1
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = getelementptr i1, i1* %a, i32 1
   %2 = load i1, i1* %1
   %3 = sext i1 %2 to i64
@@ -189,7 +189,7 @@ define i16 @load_sext_zext_anyext_i1_i16(i1 *%a) nounwind {
 ; RV64I-NEXT:    lbu a1, 1(a0)
 ; RV64I-NEXT:    lbu a0, 2(a0)
 ; RV64I-NEXT:    sub a0, a0, a1
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    ret
   %1 = getelementptr i1, i1* %a, i32 1
   %2 = load i1, i1* %1
   %3 = sext i1 %2 to i16
@@ -216,8 +216,8 @@ define i64 @ld_sd_global(i64 %a) nounwind {
 ; RV64I-NEXT:    lui a2, %hi(G+72)
 ; RV64I-NEXT:    ld a3, %lo(G+72)(a2)
 ; RV64I-NEXT:    sd a0, %lo(G+72)(a2)
-; RV64I-NEXT:    addi a0, a1, 0
-; RV64I-NEXT:    jalr zero, ra, 0
+; RV64I-NEXT:    mv a0, a1
+; RV64I-NEXT:    ret
   %1 = load volatile i64, i64* @G
   store i64 %a, i64* @G
   %2 = getelementptr i64, i64* @G, i64 9

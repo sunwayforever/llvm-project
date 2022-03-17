@@ -9,7 +9,7 @@ define float @flw(float *%a) nounwind {
 ; RV32IF-NEXT:    flw ft1, 0(a0)
 ; RV32IF-NEXT:    fadd.s ft0, ft1, ft0
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = load float, float* %a
   %2 = getelementptr float, float* %a, i32 3
   %3 = load float, float* %2
@@ -29,7 +29,7 @@ define void @fsw(float *%a, float %b, float %c) nounwind {
 ; RV32IF-NEXT:    fadd.s ft0, ft1, ft0
 ; RV32IF-NEXT:    fsw ft0, 32(a0)
 ; RV32IF-NEXT:    fsw ft0, 0(a0)
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = fadd float %b, %c
   store float %1, float* %a
   %2 = getelementptr float, float* %a, i32 8
@@ -55,7 +55,7 @@ define float @flw_fsw_global(float %a, float %b) nounwind {
 ; RV32IF-NEXT:    flw ft1, %lo(G+36)(a0)
 ; RV32IF-NEXT:    fsw ft0, %lo(G+36)(a0)
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = fadd float %a, %b
   %2 = load volatile float, float* @G
   store float %1, float* @G
@@ -75,7 +75,7 @@ define float @flw_fsw_constant(float %a) nounwind {
 ; RV32IF-NEXT:    fadd.s ft0, ft0, ft1
 ; RV32IF-NEXT:    fsw ft0, -273(a0)
 ; RV32IF-NEXT:    fmv.x.w a0, ft0
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = inttoptr i32 3735928559 to float*
   %2 = load volatile float, float* %1
   %3 = fadd float %a, %2
@@ -92,11 +92,11 @@ define float @flw_stack(float %a) nounwind {
 ; RV32IF-NEXT:    addi sp, sp, -16
 ; RV32IF-NEXT:    sw ra, 12(sp)
 ; RV32IF-NEXT:    sw s1, 8(sp)
-; RV32IF-NEXT:    addi s1, a0, 0
+; RV32IF-NEXT:    mv s1, a0
 ; RV32IF-NEXT:    lui a0, %hi(notdead)
 ; RV32IF-NEXT:    addi a1, a0, %lo(notdead)
 ; RV32IF-NEXT:    addi a0, sp, 4
-; RV32IF-NEXT:    jalr ra, a1, 0
+; RV32IF-NEXT:    jalr a1
 ; RV32IF-NEXT:    fmv.w.x ft0, s1
 ; RV32IF-NEXT:    flw ft1, 4(sp)
 ; RV32IF-NEXT:    fadd.s ft0, ft1, ft0
@@ -104,7 +104,7 @@ define float @flw_stack(float %a) nounwind {
 ; RV32IF-NEXT:    lw s1, 8(sp)
 ; RV32IF-NEXT:    lw ra, 12(sp)
 ; RV32IF-NEXT:    addi sp, sp, 16
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = alloca float, align 4
   %2 = bitcast float* %1 to i8*
   call void @notdead(i8* %2)
@@ -126,10 +126,10 @@ define void @fsw_stack(float %a, float %b) nounwind {
 ; RV32IF-NEXT:    lui a0, %hi(notdead)
 ; RV32IF-NEXT:    addi a1, a0, %lo(notdead)
 ; RV32IF-NEXT:    addi a0, sp, 8
-; RV32IF-NEXT:    jalr ra, a1, 0
+; RV32IF-NEXT:    jalr a1
 ; RV32IF-NEXT:    lw ra, 12(sp)
 ; RV32IF-NEXT:    addi sp, sp, 16
-; RV32IF-NEXT:    jalr zero, ra, 0
+; RV32IF-NEXT:    ret
   %1 = fadd float %a, %b ; force store from FPR32
   %2 = alloca float, align 4
   store float %1, float* %2
