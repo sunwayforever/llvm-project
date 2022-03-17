@@ -1,13 +1,13 @@
-# RUN: llvm-mc %s -triple=riscv64 -mattr=+c,+d -show-encoding \
+# RUN: llvm-mc %s -triple=riscv64 -mattr=+c,+d -riscv-no-aliases -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK,CHECK-INST %s
 # RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=+c,+d < %s \
-# RUN:     | llvm-objdump -mattr=+c,+d -d - \
+# RUN:     | llvm-objdump -mattr=+d -riscv-no-aliases -d - \
 # RUN:     | FileCheck -check-prefix=CHECK-INST %s
 # RUN: not llvm-mc -triple riscv64 -mattr=+c\
-# RUN:     -show-encoding < %s 2>&1 \
+# RUN:     -riscv-no-aliases -show-encoding < %s 2>&1 \
 # RUN:     | FileCheck -check-prefixes=CHECK-NO-EXT %s
 # RUN: not llvm-mc -triple riscv64 \
-# RUN:     -show-encoding < %s 2>&1 \
+# RUN:     -riscv-no-aliases -show-encoding < %s 2>&1 \
 # RUN:     | FileCheck -check-prefixes=CHECK-NO-EXT %s
 
 # CHECK-INST: c.fldsp  fs0, 504(sp)
