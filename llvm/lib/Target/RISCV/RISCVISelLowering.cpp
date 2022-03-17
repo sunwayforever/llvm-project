@@ -47,6 +47,8 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
 
   if (Subtarget.hasStdExtF())
     addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
+  if (Subtarget.hasStdExtD())
+    addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
 
   // Compute derived properties from the register classes.
   computeRegisterProperties(STI.getRegisterInfo());
@@ -1152,4 +1154,34 @@ RISCVTargetLowering::getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
   }
 
   return TargetLowering::getRegForInlineAsmConstraint(TRI, Constraint, VT);
+}
+
+MVT RISCVTargetLowering::getRegisterTypeForCallingConv(MVT VT) const {
+  // If passing f64 for the soft-float ABI on an RV32IFD target, ensure that
+  // the value is split into i32 parts despite f64 being legal.
+  // TODO: adjust when hard-float ABI is implemented.
+  if (!Subtarget.is64Bit() && VT == MVT::f64)
+    return MVT::i32;
+  return getRegisterType(VT);
+}
+
+MVT RISCVTargetLowering::getRegisterTypeForCallingConv(LLVMContext &Context,
+                                                       EVT VT) const {
+  // If passing f64 for the soft-float ABI on an RV32IFD target, ensure that
+  // the value is split into i32 parts despite f64 being legal.
+  // TODO: adjust when hard-float ABI is implemented.
+  if (!Subtarget.is64Bit() && VT.getSimpleVT() == MVT::f64)
+    return MVT::i32;
+  return getRegisterType(Context, VT);
+}
+
+unsigned
+RISCVTargetLowering::getNumRegistersForCallingConv(LLVMContext &Context,
+                                                   EVT VT) const {
+  // If passing f64 for the soft-float ABI on an RV32IFD target, ensure that
+  // the value is split into i32 parts despite f64 being legal.
+  // TODO: adjust when hard-float ABI is implemented.
+  if (!Subtarget.is64Bit() && VT.getSimpleVT() == MVT::f64)
+    return 2;
+  return getNumRegisters(Context, VT);
 }

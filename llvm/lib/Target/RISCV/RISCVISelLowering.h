@@ -51,6 +51,12 @@ public:
   EmitInstrWithCustomInserter(MachineInstr &MI,
                               MachineBasicBlock *BB) const override;
 
+  MVT getRegisterTypeForCallingConv(MVT VT) const override;
+  MVT getRegisterTypeForCallingConv(LLVMContext &Context,
+                                    EVT VT) const override;
+  unsigned getNumRegistersForCallingConv(LLVMContext &Context,
+                                         EVT VT) const override;
+
 private:
   void analyzeInputArgs(MachineFunction &MF, CCState &CCInfo,
                         const SmallVectorImpl<ISD::InputArg> &Ins,
