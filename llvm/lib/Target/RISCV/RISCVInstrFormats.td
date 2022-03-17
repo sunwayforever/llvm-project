@@ -25,6 +25,21 @@
 //
 //===----------------------------------------------------------------------===//
 
+// Format specifies the encoding used by the instruction. This is used by
+// RISCVMCCodeEmitter to determine which form of fixup to use. These
+// definitions must be kept in-sync with RISCVBaseInfo.h.
+class InstFormat<bits<4> val> {
+  bits<4> Value = val;
+}
+def InstFormatPseudo : InstFormat<0>;
+def InstFormatR      : InstFormat<1>;
+def InstFormatI      : InstFormat<2>;
+def InstFormatS      : InstFormat<3>;
+def InstFormatB      : InstFormat<4>;
+def InstFormatU      : InstFormat<5>;
+def InstFormatJ      : InstFormat<6>;
+def InstFormatOther  : InstFormat<7>;
+
 // The following opcode names and match those given in Table 19.1 in the
 // RISC-V User-level ISA specification ("RISC-V base opcode map").
 class RISCVOpcode<bits<7> val> {
@@ -53,7 +68,7 @@ def OPC_JAL       : RISCVOpcode<0b1101111>;
 def OPC_SYSTEM    : RISCVOpcode<0b1110011>;
 
 class RVInst<dag outs, dag ins, string opcodestr, string argstr,
-             list<dag> pattern>
+             list<dag> pattern, InstFormat format>
     : Instruction {
   field bits<32> Inst;
   // SoftFail is a field the disassembler can use to provide a way for
@@ -73,11 +88,13 @@ class RVInst<dag outs, dag ins, string opcodestr, string argstr,
   dag InOperandList = ins;
   let AsmString = opcodestr # "\t" # argstr;
   let Pattern = pattern;
+
+  let TSFlags{3-0} = format.Value;
 }
 
 // Pseudo instructions
 class Pseudo<dag outs, dag ins, list<dag> pattern>
-    : RVInst<outs, ins, "", "", pattern> {
+    : RVInst<outs, ins, "", "", pattern, InstFormatPseudo> {
   let isPseudo = 1;
   let isCodeGenOnly = 1;
 }
@@ -88,7 +105,7 @@ class Pseudo<dag outs, dag ins, list<dag> pattern>
 
 class RVInstR<bits<7> funct7, bits<3> funct3, RISCVOpcode opcode, dag outs,
               dag ins, string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, []> {
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatR> {
   bits<5> rs2;
   bits<5> rs1;
   bits<5> rd;
@@ -103,7 +120,7 @@ class RVInstR<bits<7> funct7, bits<3> funct3, RISCVOpcode opcode, dag outs,
 
 class RVInstI<bits<3> funct3, RISCVOpcode opcode, dag outs, dag ins,
               string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, []> {
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
   bits<12> imm12;
   bits<5> rs1;
   bits<5> rd;
@@ -117,7 +134,7 @@ class RVInstI<bits<3> funct3, RISCVOpcode opcode, dag outs, dag ins,
 
 class RVInstIShift<bit arithshift, bits<3> funct3, RISCVOpcode opcode,
                    dag outs, dag ins, string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, []> {
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
   bits<5> shamt;
   bits<5> rs1;
   bits<5> rd;
@@ -134,7 +151,7 @@ class RVInstIShift<bit arithshift, bits<3> funct3, RISCVOpcode opcode,
 
 class RVInstS<bits<3> funct3, RISCVOpcode opcode, dag outs, dag ins,
               string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, []> {
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatS> {
   bits<12> imm12;
   bits<5> rs2;
   bits<5> rs1;
@@ -149,7 +166,7 @@ class RVInstS<bits<3> funct3, RISCVOpcode opcode, dag outs, dag ins,
 
 class RVInstB<bits<3> funct3, RISCVOpcode opcode, dag outs, dag ins,
               string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, []> {
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatB> {
   bits<12> imm12;
   bits<5> rs2;
   bits<5> rs1;
@@ -166,7 +183,7 @@ class RVInstB<bits<3> funct3, RISCVOpcode opcode, dag outs, dag ins,
 
 class RVInstU<RISCVOpcode opcode, dag outs, dag ins, string opcodestr,
               string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, []> {
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatU> {
   bits<20> imm20;
   bits<5> rd;
 
@@ -177,7 +194,7 @@ class RVInstU<RISCVOpcode opcode, dag outs, dag ins, string opcodestr,
 
 class RVInstJ<RISCVOpcode opcode, dag outs, dag ins, string opcodestr,
               string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, []> {
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatJ> {
   bits<20> imm20;
   bits<5> rd;
 

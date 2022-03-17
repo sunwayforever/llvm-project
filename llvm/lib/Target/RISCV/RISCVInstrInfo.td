@@ -50,6 +50,7 @@ def uimm5 : Operand<XLenVT> {
 
 def simm12 : Operand<XLenVT> {
   let ParserMatchClass = SImmAsmOperand<12>;
+  let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeSImmOperand<12>";
 }
 
