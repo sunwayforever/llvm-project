@@ -652,6 +652,26 @@ defm : StPat<truncstorei8, SB>;
 defm : StPat<truncstorei16, SH>;
 defm : StPat<store, SW>, Requires<[IsRV32]>;
 
+/// Atomics
+
+// fence acquire -> fence r, rw
+def : Pat<(atomic_fence (i32 4), (imm)), (FENCE 2, 3)>;
+// fence release -> fence rw, r
+def : Pat<(atomic_fence (i32 5), (imm)), (FENCE 3, 1)>;
+// fence acq_rel -> fence rw, rw (but ideally would be fence.tso)
+// TODO: convert to fence.tso (when defined) for fence r, rw + fence rw, r
+def : Pat<(atomic_fence (i32 6), (imm)), (FENCE 3, 3)>;
+// fence seq_cst -> fence rw, rw
+def : Pat<(atomic_fence (i32 7), (imm)), (FENCE 3, 3)>;
+
+defm : LdPat<atomic_load_8, LB>;
+defm : LdPat<atomic_load_16, LH>;
+defm : LdPat<atomic_load_32, LW>;
+
+defm : StPat<atomic_store_8, SB>;
+defm : StPat<atomic_store_16, SH>;
+defm : StPat<atomic_store_32, SW>;
+
 /// Other pseudo-instructions
 
 // Pessimistically assume the stack pointer will be clobbered

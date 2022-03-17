@@ -1200,3 +1200,20 @@ RISCVTargetLowering::getNumRegistersForCallingConv(LLVMContext &Context,
     return 2;
   return getNumRegisters(Context, VT);
 }
+
+Instruction *RISCVTargetLowering::emitLeadingFence(IRBuilder<> &Builder,
+                                                   Instruction *Inst,
+                                                   AtomicOrdering Ord) const {
+  if (Ord == AtomicOrdering::Release ||
+      Ord == AtomicOrdering::SequentiallyConsistent)
+    return Builder.CreateFence(Ord);
+  return nullptr;
+}
+
+Instruction *RISCVTargetLowering::emitTrailingFence(IRBuilder<> &Builder,
+                                                    Instruction *Inst,
+                                                    AtomicOrdering Ord) const {
+  if (Inst->hasAtomicLoad() && isAcquireOrStronger(Ord))
+    return Builder.CreateFence(AtomicOrdering::Acquire);
+  return nullptr;
+}
