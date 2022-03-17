@@ -40,34 +40,42 @@ def FenceArg : AsmOperandClass {
 def fencearg : Operand<XLenVT> {
   let ParserMatchClass = FenceArg;
   let PrintMethod = "printFenceArg";
+  let DecoderMethod = "decodeUImmOperand<4>";
 }
 
 def uimm5 : Operand<XLenVT> {
   let ParserMatchClass = UImmAsmOperand<5>;
+  let DecoderMethod = "decodeUImmOperand<5>";
 }
 
 def simm12 : Operand<XLenVT> {
   let ParserMatchClass = SImmAsmOperand<12>;
+  let DecoderMethod = "decodeSImmOperand<12>";
 }
 
 def uimm12 : Operand<XLenVT> {
   let ParserMatchClass = UImmAsmOperand<12>;
+  let DecoderMethod = "decodeUImmOperand<12>";
 }
 
 // A 13-bit signed immediate where the least significant bit is zero.
 def simm13_lsb0 : Operand<XLenVT> {
   let ParserMatchClass = SImmAsmOperand<13, "Lsb0">;
   let EncoderMethod = "getImmOpValueAsr1";
+  let DecoderMethod = "decodeSImmOperandAndLsl1<13>";
 }
 
 def uimm20 : Operand<XLenVT> {
   let ParserMatchClass = UImmAsmOperand<20>;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeUImmOperand<20>";
 }
 
 // A 21-bit signed immediate where the least significant bit is zero.
 def simm21_lsb0 : Operand<XLenVT> {
   let ParserMatchClass = SImmAsmOperand<21, "Lsb0">;
   let EncoderMethod = "getImmOpValueAsr1";
+  let DecoderMethod = "decodeSImmOperandAndLsl1<21>";
 }
 
 //===----------------------------------------------------------------------===//

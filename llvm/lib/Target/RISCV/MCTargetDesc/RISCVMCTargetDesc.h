@@ -56,4 +56,7 @@ createRISCVELFObjectWriter(raw_pwrite_stream &OS, uint8_t OSABI, bool Is64Bit);
 #define GET_INSTRINFO_ENUM
 #include "RISCVGenInstrInfo.inc"
 
+#define GET_SUBTARGETINFO_ENUM
+#include "RISCVGenSubtargetInfo.inc"
+
 #endif
