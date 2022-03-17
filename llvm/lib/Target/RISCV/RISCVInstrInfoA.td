@@ -74,4 +74,22 @@ defm AMOMIN_D   : AMO_rr_aq_rl<0b10000, 0b011, "amomin.d">;
 defm AMOMAX_D   : AMO_rr_aq_rl<0b10100, 0b011, "amomax.d">;
 defm AMOMINU_D  : AMO_rr_aq_rl<0b11000, 0b011, "amominu.d">;
 defm AMOMAXU_D  : AMO_rr_aq_rl<0b11100, 0b011, "amomaxu.d">;
-} // Predicates = [HasStedExtA, IsRV64]
+} // Predicates = [HasStdExtA, IsRV64]
+
+//===----------------------------------------------------------------------===//
+// Pseudo-instructions and codegen patterns
+//===----------------------------------------------------------------------===//
+
+let Predicates = [HasStdExtA] in {
+// TODO: Should set .aqrl bits as appropriate rather than doing the
+// fence-based lowering.
+def : PatGprGpr<atomic_swap_32, AMOSWAP_W>;
+def : PatGprGpr<atomic_load_add_32, AMOADD_W>;
+def : PatGprGpr<atomic_load_and_32, AMOAND_W>;
+def : PatGprGpr<atomic_load_or_32, AMOOR_W>;
+def : PatGprGpr<atomic_load_xor_32, AMOXOR_W>;
+def : PatGprGpr<atomic_load_max_32, AMOMAX_W>;
+def : PatGprGpr<atomic_load_min_32, AMOMIN_W>;
+def : PatGprGpr<atomic_load_umax_32, AMOMAXU_W>;
+def : PatGprGpr<atomic_load_umin_32, AMOMINU_W>;
+} // Predicates = [HasStdExtA]
