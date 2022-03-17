@@ -17,7 +17,16 @@ include "RISCVInstrFormats.td"
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
 
-def simm12 : Operand<XLenVT>;
+class SImmAsmOperand<int width>
+    : AsmOperandClass {
+  let Name = "SImm" # width;
+  let RenderMethod = "addImmOperands";
+  let DiagnosticType = !strconcat("Invalid", Name);
+}
+
+def simm12 : Operand<XLenVT> {
+  let ParserMatchClass = SImmAsmOperand<12>;
+}
 
 //===----------------------------------------------------------------------===//
 // Instruction Class Templates
@@ -54,4 +63,3 @@ def SRL  : ALU_rr<0b0000000, 0b101, "srl">;
 def SRA  : ALU_rr<0b0100000, 0b101, "sra">;
 def OR   : ALU_rr<0b0000000, 0b110, "or">;
 def AND  : ALU_rr<0b0000000, 0b111, "and">;
-
