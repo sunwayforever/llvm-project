@@ -32,7 +32,6 @@ subdirectories =
  Mips
  Nios2
  PowerPC
- RISCV
  Sparc
  SystemZ
  WebAssembly

@@ -74,10 +74,6 @@ AMDGPU
 
 Refer to :doc:`AMDGPUUsage` for additional documentation.
 
-RISC-V
-------
-* `RISC-V User-Level ISA Specification <https://riscv.org/specifications/>`_
-
 SPARC
 -----
 
