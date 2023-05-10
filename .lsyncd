@@ -1,0 +1,1 @@
+exclude = {'__pycache__','.git','build','TAGS','searchindex','locate.db','DOXYGEN'}
