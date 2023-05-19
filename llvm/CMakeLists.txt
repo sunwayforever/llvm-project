@@ -449,6 +449,7 @@ set(LLVM_ALL_TARGETS
   RISCV
   Sparc
   SystemZ
+  Toy
   VE
   WebAssembly
   X86

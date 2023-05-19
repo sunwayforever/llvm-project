@@ -1,0 +1,103 @@
+#+TITLE: Toy RISC-V Backend
+#+AUTHOR: Wei Sun (孙伟)
+#+EMAIL: wei.sun@hexintek.com
+#+DATE: 2023-05-19 Fri 14:00
+#+CATEGORY:
+#+FILETAGS:
+
+* Toy RISC-V Backend
+
+** llc 识别 target
+
+*** 目标
+
+#+begin_example
+  $> ./build/bin/llc --version
+  LLVM (http://llvm.org/):
+    LLVM version 15.0.0git
+    DEBUG build with assertions.
+    Default target: x86_64-unknown-linux-gnu
+    Host CPU: skylake
+
+    Registered Targets:
+      toy - TOY
+#+end_example
+
+*** 需要的修改
+
+1. 添加 target 到 cmake
+
+   #+begin_example
+     set(LLVM_ALL_TARGETS
+     ...
+     Toy
+     ...
+     )
+   #+end_example
+
+   这个 `Toy` 与 build 时指定的 `LLVM_TARGETS_TO_BUILD=Toy` 一致, 且 cmake 会根
+   据这个名字找到 `llvm/lib/Target/Toy` 目录来编译
+
+2. 添加 Triple::ArchType
+
+   #+begin_src C++ :eval no
+     class Triple {
+       public:
+         enum ArchType {
+             UnknownArch,
+             ...
+             toy,
+             ...
+         };
+   #+end_src
+
+   后面提到的 LLVMInitializeToyTargetInfo 函数会使 llc 的命令行参数 `-march toy`
+   会对应到 ArchType::toy, 同时 LLVMInitializeToyTargetInfo 还会注册
+   ArchType::toy 对应的 TheToyTarget, 从而让 llc 找到 TheToyTarget. 后续实现的
+   Toy 的其它初始化的信息都会与 TheToyTarget 关联
+
+3. 添加 llvm/lib/Target/Toy 目录
+
+   1) 需要实现一个名为 LLVMToyCodeGen 的库 (这个名字是由 cmake 要求的), 并实现
+      LLVMInitializeToyTarget 函数, 目前实现为空
+
+   2) 需要实现一个名为 LLVMToyDesc 的库, 实现 LLVMInitializeToyTargetMC 函数, 目
+      前实现为空
+
+   3) 需要实现一个名为 LLVMToyInfo 的库, 实现 LLVMInitializeToyTargetInfo 函数.
+      为了 llc 的 `Registered Targets` 能列出 toy, 这里必须实现该函数, 以便把
+      `toy`, `Triple::toy` 以及 `TheToyTarget` 关联起来
+
+*** 测试
+
+#+begin_example
+  $> ./build/bin/llc --version
+  LLVM (http://llvm.org/):
+    LLVM version 15.0.0git
+    DEBUG build with assertions.
+    Default target: x86_64-unknown-linux-gnu
+    Host CPU: skylake
+
+    Registered Targets:
+      toy - Toy RISC-V backend
+
+  $> clang toy_test/test.c -c -emit-llvm -O0 -o /tmp/test.bc
+  $> ./build/bin/llc /tmp/test.bc -march=toy
+
+  llc: /home/sunway/source/llvm-toy/llvm/tools/llc/llc.cpp:559: auto
+  compileModule(char **, llvm::LLVMContext &)::(anonymous
+  class)::operator()(llvm::StringRef) const: Assertion `Target && "Could not
+  allocate target machine!"' failed.
+#+end_example
+
+报错的原因是:
+
+#+begin_src C :eval no
+  /* NOTE: 由于 LLVMInitializeToyTarget 没有实现, 导致
+   ,* TheTarget.TargetMachineCtorFn 没有定义, TheTarget->createTargetMachine 返回
+   ,* NULL */
+  Target = std::unique_ptr<TargetMachine>(TheTarget->createTargetMachine(
+      TheTriple.getTriple(), CPUStr, FeaturesStr, Options, RM,
+      codegen::getExplicitCodeModel(), OLvl));
+  assert(Target && "Could not allocate target machine!");
+#+end_src
