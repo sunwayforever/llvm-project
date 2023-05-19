@@ -120,4 +120,74 @@ TheTarget->createTargetMachine 返回 ToyTargetMachine 实例.
 
 出错的原因是没有调用 RegisterMCRegInfo, 导致 initAsmInfo 时出错.
 
+** LLVMInitializeToyTargetMC
 
+LLVMInitializeToyTargetMC 会设置一个回调函数, 这些回调会由 initAsm 时通过
+TheTargt 的 createXXX 调用以初始化 TheTarget 的 MRI, MII, STI, AsmInfo 等.
+
+- MRI
+
+  MCRegisterInfo
+
+  寄存器的编号, 名字等, 主要信息由 td 生成
+  
+- MII
+
+  MCInstrInfo
+
+  指令的编码, 名字等, 主要信息由 td 生成
+
+- STI
+
+  MCSubtargetInfo
+
+  subtarget 对应调用 llc 时指定的 `-mcpu`, `-mattr` 等信息. llc 会用这些信息调用
+  STI 对应的回调函数以初始化 STI.
+
+  subtarget 的信息是由 td 生成的
+
+- AsmInfo
+
+  MCAsmInfo
+
+  需要包含一些 asm 文件的格式信息, 例如 comment 对应的 `#` 符号
+
+在定义 STI 时使用了 td 文件, td 文件需要在 cmake 中指定 tablegen 命令的参数以及
+生成头文件的名字, 例如
+
+#+begin_example
+  set(LLVM_TARGET_DEFINITIONS Toy.td)
+  tablegen(LLVM ToyGenSubtargetInfo.inc -gen-subtarget)
+  add_public_tablegen_target(ToyCommonTableGen)
+#+end_example
+
+表示 td 的入口是 Toy.td, 使用 `-gen-subtarget` 生成 ToyGenSubtargetInfo.inc
+
+*** 测试
+
+#+begin_example
+  ~/source/llvm-toy#toy[17:43:49]@sunway-t14> ./test_toy.sh 
+  ; ModuleID = '/tmp/test.bc'
+  source_filename = "toy_test/test.c"
+  target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+  target triple = "x86_64-pc-linux-gnu"
+
+  ; Function Attrs: noinline nounwind optnone uwtable
+  define dso_local void @foo() #0 {
+    %1 = alloca i32, align 4
+    store i32 255, i32* %1, align 4
+    ret void
+  }
+
+  ...
+  !llvm.module.flags = !{!0}
+  !llvm.ident = !{!1}
+
+  !0 = !{i32 1, !"wchar_size", i32 4}
+  !1 = !{!"clang version 10.0.0-4ubuntu1 "}
+  llc: error: target does not support generation of this file type
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#+end_example
+
+报错的原因是 Toy 没有指定一个 SelectionDAGISel 实例. SelectionDAGISel 是整个 isel
+(instruction selection) 的入口
