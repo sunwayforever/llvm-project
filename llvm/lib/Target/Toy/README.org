@@ -212,3 +212,48 @@ Select 函数直接调用了 td 根据 patten 生成的 SelectCode 函数. table
 #+end_example
 
 出错的原因是没有实现 InstPrinter
+
+** toy-5: ToyInstPrinter
+
+ToyInstPrinter 继承自 MCInstPrinter, 需要实现 printInst, printRegName,
+printOperand 等函数. 它会使用 tablegen 的 `-gen-asm-writer` 生成的函数例如
+printInstruction, getRegisterName 等
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+  llc: error: target does not support generation of this file type
+#+end_example
+
+出错的原因是没有实现 ToyAsmPrinter.
+
+cmake 通过提供 target 目录是否存在 `*AsmPrinter.cpp` 来决定 llc 是否调用
+LLVMInitializeToyAsmPrinter 来初始化到 asm printer.
+
+#+begin_example
+  llvm/CMakeLists.txt:
+  ====================
+  file(GLOB asmp_file "${td}/*AsmPrinter.cpp")
+    if( asmp_file )
+      set(LLVM_ENUM_ASM_PRINTERS
+        "${LLVM_ENUM_ASM_PRINTERS}LLVM_ASM_PRINTER(${t})\n")
+  endif()
+
+  AsmPrinters.def.in:
+  ====================
+  @LLVM_ENUM_ASM_PRINTERS@
+
+  如果前面找到 AsmPrinter.cpp, 则这里会展开成:
+
+  LLVM_ASM_PRINTER(Toy)
+
+  llc:
+  ====================
+  inline void InitializeAllAsmPrinters() {
+  #define LLVM_ASM_PRINTER(TargetName) LLVMInitialize##TargetName##AsmPrinter();
+  #include "llvm/Config/AsmPrinters.def"
+  }
+#+end_example
+
+所以需要定义一个 ToyAsmPrinter.cpp, 并实现 LLVMInitializeToyAsmPrinter 函数

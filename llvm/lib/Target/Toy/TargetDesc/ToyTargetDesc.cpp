@@ -1,10 +1,11 @@
 // 2023-05-19 11:34
+#include "ToyInstPrinter.h"
+#include "llvm/ADT/None.h"
 #include "llvm/MC/MCAsmInfo.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/TargetRegistry.h"
-#include "llvm/ADT/None.h"
 
 #define GET_SUBTARGETINFO_MC_DESC
 #include "ToyGenSubtargetInfo.inc"
@@ -36,10 +37,19 @@ static MCRegisterInfo *createToyMCRegisterInfo(Triple const &TT) {
   return x;
 }
 
+static MCInstPrinter *createToyInstPrinter(Triple const &T,
+                                           unsigned SyntaxVariant,
+                                           MCAsmInfo const &MAI,
+                                           MCInstrInfo const &MII,
+                                           MCRegisterInfo const &MRI) {
+  return new ToyInstPrinter(MAI, MII, MRI);
+}
+
 extern "C" void LLVMInitializeToyTargetMC() {
   TargetRegistry::RegisterMCRegInfo(TheToyTarget, createToyMCRegisterInfo);
   TargetRegistry::RegisterMCInstrInfo(TheToyTarget, createToyMCInstrInfo);
   TargetRegistry::RegisterMCSubtargetInfo(TheToyTarget,
                                           createToyMCSubtargetInfo);
   TargetRegistry::RegisterMCAsmInfo(TheToyTarget, createToyMCAsmInfo);
+  TargetRegistry::RegisterMCInstPrinter(TheToyTarget, createToyInstPrinter);
 }
