@@ -257,3 +257,21 @@ LLVMInitializeToyAsmPrinter 来初始化到 asm printer.
 #+end_example
 
 所以需要定义一个 ToyAsmPrinter.cpp, 并实现 LLVMInitializeToyAsmPrinter 函数
+
+** toy-6: ToyAsmPrinter
+
+ToyAsmPrinter 操作的是 MachineInstr, 它需要实现 emitStartOfAsmFile,
+emitFunctionBodyStart, emitInstruction 等, 其中 emitInstruction 需要转换
+MachineInstr 到 MCInstr, 然后通过 MC 调用到 ToyInstPrinter
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+  llc: /home/sunway/source/llvm-toy/llvm/tools/llc/llc.cpp:733: int
+  compileModule(char **, llvm::LLVMContext &): Assertion
+  `LLVMTM.getObjFileLowering() && "getObjFileLowering"' failed.
+#+end_example
+
+报错的原因是 ToyTargetMachine 没有实现 getObjFileLowering 函数

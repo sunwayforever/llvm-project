@@ -9,6 +9,7 @@ add_public_tablegen_target(ToyCommonTableGen)
 add_llvm_target(ToyCodeGen
   ToyTargetMachine.cpp
   ToyDAGToDAGISel.cpp
+  ToyAsmPrinter.cpp
 )
 
 add_subdirectory(TargetInfo)
