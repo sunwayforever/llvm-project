@@ -1,1 +1,5 @@
-def Toy : Target {}
+def ToyInstrInfo : InstrInfo;
+
+def Toy : Target {
+  let InstructionSet = ToyInstrInfo;
+}

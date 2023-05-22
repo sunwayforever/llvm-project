@@ -7,7 +7,7 @@
 
 * Toy RISC-V Backend
 
-** llc 识别 target
+** toy-1: llc 识别 target
 
 *** 目标
 
@@ -102,7 +102,7 @@
   assert(Target && "Could not allocate target machine!");
 #+end_src
 
-** LLVMInitializeToyTarget
+** toy-2: LLVMInitializeToyTarget
 
 实现 LLVMInitializeToyTarget.
 
@@ -112,7 +112,7 @@ TheTarget->createTargetMachine 返回 ToyTargetMachine 实例.
 *** 测试
 
 #+begin_example
-  $> test_toy.sh
+  $> toy_test.sh
   llc: /home/sunway/source/llvm-toy/llvm/lib/CodeGen/LLVMTargetMachine.cpp:42:
   void llvm::LLVMTargetMachine::initAsmInfo(): Assertion `MRI && "Unable to create
   reg info"' failed.
@@ -120,7 +120,7 @@ TheTarget->createTargetMachine 返回 ToyTargetMachine 实例.
 
 出错的原因是没有调用 RegisterMCRegInfo, 导致 initAsmInfo 时出错.
 
-** LLVMInitializeToyTargetMC
+** toy-3: LLVMInitializeToyTargetMC
 
 LLVMInitializeToyTargetMC 会设置一个回调函数, 这些回调会由 initAsm 时通过
 TheTargt 的 createXXX 调用以初始化 TheTarget 的 MRI, MII, STI, AsmInfo 等.
@@ -166,7 +166,7 @@ TheTargt 的 createXXX 调用以初始化 TheTarget 的 MRI, MII, STI, AsmInfo �
 *** 测试
 
 #+begin_example
-  ~/source/llvm-toy#toy[17:43:49]@sunway-t14> ./test_toy.sh 
+  ~/source/llvm-toy#toy[17:43:49]@sunway-t14> ./toy_test.sh 
   ; ModuleID = '/tmp/test.bc'
   source_filename = "toy_test/test.c"
   target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
@@ -191,3 +191,24 @@ TheTargt 的 createXXX 调用以初始化 TheTarget 的 MRI, MII, STI, AsmInfo �
 
 报错的原因是 Toy 没有指定一个 SelectionDAGISel 实例. SelectionDAGISel 是整个 isel
 (instruction selection) 的入口
+
+** toy-4: ToyDAGToDAGISel
+
+通过 ToyTargetMachine 的 createPassConfig 函数, 注册一个 ToyDAGToDAGISel pass,
+后者继承自 SelectionDAGISel, 需要实现一个 `Select` 函数做为 isel 的入口. 这里的
+Select 函数直接调用了 td 根据 patten 生成的 SelectCode 函数. tablegen 的
+`gen-dag-isel` 需要 td 中定义一个 RegisterClass
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+  llc: /home/sunway/source/llvm-toy/llvm/lib/MC/MCAsmStreamer.cpp:85: (anonymous
+  namespace)::MCAsmStreamer::MCAsmStreamer(llvm::MCContext &,
+  std::unique_ptr<formatted_raw_ostream>, bool, bool, llvm::MCInstPrinter *,
+  std::unique_ptr<MCCodeEmitter>, std::unique_ptr<MCAsmBackend>, bool): Assertion
+  `InstPrinter' failed.
+#+end_example
+
+出错的原因是没有实现 InstPrinter

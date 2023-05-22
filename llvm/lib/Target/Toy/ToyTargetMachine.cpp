@@ -1,6 +1,8 @@
 // 2023-05-19 11:06
 #include "ToyTargetMachine.h"
-#include "llvm/MC/TargetRegistry.h"
+#include "ToyDAGToDAGISel.h"
+#include <llvm/CodeGen/TargetPassConfig.h>
+#include <llvm/MC/TargetRegistry.h>
 
 using namespace llvm;
 
@@ -20,4 +22,19 @@ ToyTargetMachine::ToyTargetMachine(Target const &T, Triple const &TT,
     : LLVMTargetMachine(T, "e-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64", TT,
                         CPU, FS, Options, Reloc::Static, CodeModel::Small, OL) {
   initAsmInfo();
+}
+
+class ToyPassConfig : public TargetPassConfig {
+public:
+  ToyPassConfig(ToyTargetMachine &TM, PassManagerBase &PM)
+      : TargetPassConfig(TM, PM) {}
+
+  bool addInstSelector() override {
+    addPass(new ToyDAGToDAGISel(getTM<ToyTargetMachine>(), getOptLevel()));
+    return false;
+  }
+};
+
+TargetPassConfig *ToyTargetMachine::createPassConfig(PassManagerBase &PM) {
+  return new ToyPassConfig(*this, PM);
 }

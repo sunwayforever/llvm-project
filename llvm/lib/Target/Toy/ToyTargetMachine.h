@@ -14,6 +14,7 @@ public:
                    bool JIT);
 
   ~ToyTargetMachine() {}
+  TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
 };
 } // namespace llvm
 
