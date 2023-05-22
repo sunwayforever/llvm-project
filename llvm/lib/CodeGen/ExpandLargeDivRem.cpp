@@ -116,6 +116,7 @@ public:
 
   bool runOnFunction(Function &F) override {
     auto *TM = &getAnalysis<TargetPassConfig>().getTM<TargetMachine>();
+    assert(TM->getSubtargetImpl(F));
     auto *TLI = TM->getSubtargetImpl(F)->getTargetLowering();
     return runImpl(F, *TLI);
   }

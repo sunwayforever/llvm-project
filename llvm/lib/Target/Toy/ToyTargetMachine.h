@@ -6,6 +6,9 @@
 
 namespace llvm {
 class ToyTargetMachine : public LLVMTargetMachine {
+private:
+  TargetLoweringObjectFile *mTLOF;
+
 public:
   ToyTargetMachine(Target const &T, Triple const &TT, StringRef CPU,
                    StringRef FS, TargetOptions const &Options,
@@ -15,6 +18,7 @@ public:
 
   ~ToyTargetMachine() {}
   TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
+  TargetLoweringObjectFile *getObjFileLowering() const override;
 };
 } // namespace llvm
 

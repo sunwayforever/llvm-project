@@ -10,6 +10,7 @@ add_llvm_target(ToyCodeGen
   ToyTargetMachine.cpp
   ToyDAGToDAGISel.cpp
   ToyAsmPrinter.cpp
+  ToyTargetObjectFile.cpp
 )
 
 add_subdirectory(TargetInfo)
