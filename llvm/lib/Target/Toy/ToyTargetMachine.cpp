@@ -22,12 +22,18 @@ ToyTargetMachine::ToyTargetMachine(Target const &T, Triple const &TT,
     // NOTE: 这里的参数主要是 llc 传递过来的命令行参数
     : LLVMTargetMachine(T, "e-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64", TT,
                         CPU, FS, Options, Reloc::Static, CodeModel::Small, OL),
-      mTLOF(new ToyTargetObjectFile()) {
+      mTLOF(new ToyTargetObjectFile()),
+      mSubtarget(new ToySubtarget(TT, CPU, CPU, FS, *this)) {
   initAsmInfo();
 }
 
 TargetLoweringObjectFile *ToyTargetMachine::getObjFileLowering() const {
   return mTLOF;
+}
+
+ToySubtarget const *
+ToyTargetMachine::getSubtargetImpl(Function const &F) const {
+  return mSubtarget;
 }
 
 class ToyPassConfig : public TargetPassConfig {

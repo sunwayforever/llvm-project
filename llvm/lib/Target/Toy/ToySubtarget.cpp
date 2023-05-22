@@ -1,0 +1,14 @@
+// 2023-05-22 18:36
+#include "ToySubtarget.h"
+
+#define DEBUG_TYPE "toy subtarget"
+
+#define GET_SUBTARGETINFO_TARGET_DESC
+#define GET_SUBTARGETINFO_CTOR
+#include "ToyGenSubtargetInfo.inc"
+
+using namespace llvm;
+
+ToySubtarget::ToySubtarget(Triple const &TT, StringRef &CPU, StringRef &TuneCPU,
+                           StringRef &FS, ToyTargetMachine const &TTM)
+    : ToyGenSubtargetInfo(TT, CPU, TuneCPU, FS) {}

@@ -292,3 +292,22 @@ AsmPrinter 会使用 TargetLoweringObjectFile 决定各种数据所在的 sectio
 #+end_example
 
 出错的原因是不支持 subtarget
+
+** toy-8: ToySubtarget
+
+ToyTargetMachine 需要实现 getSubtargetImpl 返回一个 ToySubtaget, 后续 isel 相关的功能
+例如 getRegisterInfo, getInstrInfo, getFrameLowering, getTargetLowering 都需要由
+subtarget 提供
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+  llc: /home/sunway/source/llvm-toy/llvm/lib/CodeGen/ExpandLargeDivRem.cpp:121:
+  virtual bool (anonymous
+  namespace)::ExpandLargeDivRemLegacyPass::runOnFunction(llvm::Function &):
+  Assertion `TLI && "getTargetLowering is null"' failed.
+#+end_example
+
+出错的原因是 ToySubtarget 没有实现 getTargetLowering.

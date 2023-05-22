@@ -2,12 +2,14 @@
 #ifndef TOY_TARGET_MACHINE_H
 #define TOY_TARGET_MACHINE_H
 
-#include "llvm/Target/TargetMachine.h"
+#include <llvm/Target/TargetMachine.h>
+#include "ToySubtarget.h"
 
 namespace llvm {
 class ToyTargetMachine : public LLVMTargetMachine {
 private:
   TargetLoweringObjectFile *mTLOF;
+  ToySubtarget *mSubtarget;
 
 public:
   ToyTargetMachine(Target const &T, Triple const &TT, StringRef CPU,
@@ -19,6 +21,7 @@ public:
   ~ToyTargetMachine() {}
   TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
   TargetLoweringObjectFile *getObjFileLowering() const override;
+  ToySubtarget const *getSubtargetImpl(Function const &F) const override;
 };
 } // namespace llvm
 

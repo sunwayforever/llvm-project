@@ -118,6 +118,7 @@ public:
     auto *TM = &getAnalysis<TargetPassConfig>().getTM<TargetMachine>();
     assert(TM->getSubtargetImpl(F));
     auto *TLI = TM->getSubtargetImpl(F)->getTargetLowering();
+    assert(TLI && "getTargetLowering is null");
     return runImpl(F, *TLI);
   }
 
