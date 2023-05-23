@@ -10,5 +10,9 @@
 using namespace llvm;
 
 ToySubtarget::ToySubtarget(Triple const &TT, StringRef &CPU, StringRef &TuneCPU,
-                           StringRef &FS, ToyTargetMachine const &TTM)
-    : ToyGenSubtargetInfo(TT, CPU, TuneCPU, FS) {}
+                           StringRef &FS, TargetMachine &TM)
+    : ToyGenSubtargetInfo(TT, CPU, TuneCPU, FS), mTargetLowering(TM, *this) {}
+
+ToyTargetLowering const *ToySubtarget::getTargetLowering() const {
+  return &mTargetLowering;
+}

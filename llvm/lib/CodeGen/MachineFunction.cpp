@@ -190,6 +190,7 @@ void MachineFunction::init() {
 
   // We can realign the stack if the target supports it and the user hasn't
   // explicitly asked us not to.
+  assert(STI->getFrameLowering());
   bool CanRealignSP = STI->getFrameLowering()->isStackRealignable() &&
                       !F.hasFnAttribute("no-realign-stack");
   FrameInfo = new (Allocator) MachineFrameInfo(

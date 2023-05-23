@@ -2,6 +2,7 @@
 #ifndef TOY_SUBTARGET_H
 #define TOY_SUBTARGET_H
 
+#include "ToyISelLowering.h"
 #include <llvm/ADT/None.h>
 #include <llvm/CodeGen/TargetSubtargetInfo.h>
 #include <llvm/MC/MCInst.h>
@@ -12,11 +13,16 @@
 namespace llvm {
 class ToyTargetMachine;
 class ToySubtarget : public ToyGenSubtargetInfo {
+private:
+  ToyTargetLowering mTargetLowering;
+
 public:
   ToySubtarget(Triple const &TT, StringRef &CPU, StringRef &TuneCPU,
-               StringRef &FS, ToyTargetMachine const &TTM);
+               StringRef &FS, TargetMachine &TTM);
 
   ~ToySubtarget() override {}
+
+  ToyTargetLowering const *getTargetLowering() const override;
 
   void ParseSubtargetFeatures(StringRef CPU, StringRef TuneCPU, StringRef FS);
 };

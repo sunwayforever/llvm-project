@@ -12,6 +12,7 @@ add_llvm_target(ToyCodeGen
   ToyAsmPrinter.cpp
   ToyTargetObjectFile.cpp
   ToySubtarget.cpp
+  ToyISelLowering.cpp
 )
 
 add_subdirectory(TargetInfo)
