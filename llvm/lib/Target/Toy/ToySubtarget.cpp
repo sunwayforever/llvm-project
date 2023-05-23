@@ -16,3 +16,7 @@ ToySubtarget::ToySubtarget(Triple const &TT, StringRef &CPU, StringRef &TuneCPU,
 ToyTargetLowering const *ToySubtarget::getTargetLowering() const {
   return &mTargetLowering;
 }
+
+ToyFrameLowering const *ToySubtarget::getFrameLowering() const {
+  return &mFrameLowering;
+}

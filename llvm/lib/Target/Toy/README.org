@@ -328,3 +328,27 @@ SelectionDAG. 虽然最初的 SelectionDAG 基本是 target 无关, 但涉及到
 #+end_example
 
 出错的原因是 ToySubtarget 没有实现 getFrameLowering
+
+** toy-10: ToyFrameLowering
+
+ToyFrameLowering 需要实现 emitPrologue 和 emitEpilogue, 它们由 PEI (prologue
+epilogue insertion) 这个 pass 调用.
+
+emitPrologue 会获取 stack size, 然后通过 BuildMI 生成 MachineInstr 来调整 sp. 另
+外它还会生成 dwarf cfi directive.
+
+PEI 操作的是 MachineInstr, 它发生成 scheduling 之后.
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+  llc:
+  /home/sunway/source/llvm-toy/llvm/lib/CodeGen/SelectionDAG/SelectionDAGISel.cpp:3058:
+  void llvm::SelectionDAGISel::SelectCodeCommon(llvm::SDNode *, const unsigned
+  char *, unsigned int): Assertion `MatcherIndex < TableSize && "Invalid index"'
+  failed.
+#+end_example
+
+出错的原因是 td 还没有定义 load pattern 对应的指令
