@@ -352,3 +352,47 @@ PEI 操作的是 MachineInstr, 它发生成 scheduling 之后.
 #+end_example
 
 出错的原因是 td 还没有定义 load pattern 对应的指令
+
+** toy-11: isel
+
+写一个最简单的 ToyInstrInfo.td, 它会把 immediate 这个 pattern 转换为 Toy::ADDI,
+并且把用于访问局部变量的 frameindex 转换为 Toy::STORE
+
+#+begin_example
+  ===== Instruction selection begins: %bb.0 ''    
+                                                
+  ISEL: Starting selection on root node: t5: ch = store<(store (s32) into %ir.1)> t0, Constant:i32<255>, FrameIndex:i32<0>, undef:i32
+  ISEL: Starting pattern match                    
+  Creating constant: t7: i32 = TargetConstant<0>  
+    Morphed node: t5: ch = STORE<Mem:(store (s32) into %ir.1)> Constant:i32<255>, TargetFrameIndex:i32<0>, TargetConstant:i32<0>, t0
+  ISEL: Match complete!                           
+                                                
+  ISEL: Starting selection on root node: t1: i32 = Constant<255>
+  ISEL: Starting pattern match                    
+    Initial Opcode index to 51                    
+  Creating constant: t9: i32 = TargetConstant<255>
+    Morphed node: t1: i32 = ADDI Register:i32 $physreg1, TargetConstant:i32<255>
+  ISEL: Match complete!                           
+
+  ISEL: Starting selection on root node: t0: ch,glue = EntryToken
+
+  ===== Instruction selection ends:
+  Selected selection DAG: %bb.0 'foo:'
+  SelectionDAG has 7 nodes:
+      t1: i32 = ADDI Register:i32 $physreg1, TargetConstant:i32<255>
+      t0: ch,glue = EntryToken
+    t5: ch = STORE<Mem:(store (s32) into %ir.1)> t1, TargetFrameIndex:i32<0>, TargetConstant:i32<0>, t0
+#+end_example
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+  llc:
+  /home/sunway/source/llvm-toy/llvm/lib/CodeGen/SelectionDAG/ScheduleDAGRRList.cpp:368:
+  virtual void (anonymous namespace)::ScheduleDAGRRList::Schedule(): Assertion
+  `TRI' failed.
+#+end_example
+
+出错的原因是 schedule 时需要 subtarget 实现 getRegisterInfo

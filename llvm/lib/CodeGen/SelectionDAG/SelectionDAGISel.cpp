@@ -409,6 +409,7 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
   OptLevelChanger OLC(*this, NewOptLevel);
 
   TII = MF->getSubtarget().getInstrInfo();
+  assert(TII);
   TLI = MF->getSubtarget().getTargetLowering();
   RegInfo = &MF->getRegInfo();
   LibInfo = &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI(Fn);

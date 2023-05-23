@@ -365,6 +365,7 @@ void ScheduleDAGRRList::Schedule() {
   NumLiveRegs = 0;
   // Allocate slots for each physical register, plus one for a special register
   // to track the virtual resource of a calling sequence.
+  assert(TRI);
   LiveRegDefs.reset(new SUnit*[TRI->getNumRegs() + 1]());
   LiveRegGens.reset(new SUnit*[TRI->getNumRegs() + 1]());
   CallSeqEndForStart.clear();

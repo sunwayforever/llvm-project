@@ -1,4 +1,5 @@
 // 2023-05-19 11:34
+#include "ToyTargetDesc.h"
 #include "ToyInstPrinter.h"
 #include "llvm/ADT/None.h"
 #include "llvm/MC/MCAsmInfo.h"
@@ -7,8 +8,14 @@
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/TargetRegistry.h"
 
+#define GET_INSTRINFO_MC_DESC
+#include "ToyGenInstrInfo.inc"
+
 #define GET_SUBTARGETINFO_MC_DESC
 #include "ToyGenSubtargetInfo.inc"
+
+#define GET_REGINFO_MC_DESC
+#include "ToyGenRegisterInfo.inc"
 
 using namespace llvm;
 

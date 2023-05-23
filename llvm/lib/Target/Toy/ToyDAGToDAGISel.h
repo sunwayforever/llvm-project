@@ -2,6 +2,7 @@
 #ifndef TOY_DAG_TO_DAG_ISEL_H
 #define TOY_DAG_TO_DAG_ISEL_H
 
+#include "TargetDesc/ToyTargetDesc.h"
 #include "ToyTargetMachine.h"
 
 #include <llvm/CodeGen/SelectionDAGISel.h>
@@ -15,6 +16,8 @@ public:
       : SelectionDAGISel(ID, TM, OL){};
   StringRef getPassName() const override { return "ToyDAGToDAG"; }
   void Select(SDNode *N) override;
+
+  bool SelectAddrFI(SDNode *Parent, SDValue N, SDValue &Base, SDValue &Offset);
 };
 
 } // namespace llvm

@@ -4,6 +4,8 @@ set(LLVM_TARGET_DEFINITIONS Toy.td)
 tablegen(LLVM ToyGenSubtargetInfo.inc -gen-subtarget)
 tablegen(LLVM ToyGenDAGISel.inc -gen-dag-isel)
 tablegen(LLVM ToyGenAsmWriter.inc -gen-asm-writer)
+tablegen(LLVM ToyGenInstrInfo.inc -gen-instr-info)
+tablegen(LLVM ToyGenRegisterInfo.inc -gen-register-info)
 add_public_tablegen_target(ToyCommonTableGen)
 
 add_llvm_target(ToyCodeGen
@@ -14,6 +16,7 @@ add_llvm_target(ToyCodeGen
   ToySubtarget.cpp
   ToyISelLowering.cpp
   ToyFrameLowering.cpp
+  ToyInstrInfo.cpp
 )
 
 add_subdirectory(TargetInfo)

@@ -2,8 +2,9 @@
 #ifndef TOY_SUBTARGET_H
 #define TOY_SUBTARGET_H
 
-#include "ToyISelLowering.h"
 #include "ToyFrameLowering.h"
+#include "ToyISelLowering.h"
+#include "ToyInstrInfo.h"
 #include <llvm/ADT/None.h>
 #include <llvm/CodeGen/TargetSubtargetInfo.h>
 #include <llvm/MC/MCInst.h>
@@ -17,6 +18,7 @@ class ToySubtarget : public ToyGenSubtargetInfo {
 private:
   ToyTargetLowering mTargetLowering;
   ToyFrameLowering mFrameLowering;
+  ToyInstrInfo mInstrInfo;
 
 public:
   ToySubtarget(Triple const &TT, StringRef &CPU, StringRef &TuneCPU,
@@ -26,6 +28,7 @@ public:
 
   ToyTargetLowering const *getTargetLowering() const override;
   ToyFrameLowering const *getFrameLowering() const override;
+  ToyInstrInfo const *getInstrInfo() const override;
 
   void ParseSubtargetFeatures(StringRef CPU, StringRef TuneCPU, StringRef FS);
 };

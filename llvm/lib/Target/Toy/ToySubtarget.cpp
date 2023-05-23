@@ -20,3 +20,5 @@ ToyTargetLowering const *ToySubtarget::getTargetLowering() const {
 ToyFrameLowering const *ToySubtarget::getFrameLowering() const {
   return &mFrameLowering;
 }
+
+ToyInstrInfo const *ToySubtarget::getInstrInfo() const { return &mInstrInfo; }
