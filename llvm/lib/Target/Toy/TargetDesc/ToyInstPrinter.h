@@ -16,10 +16,14 @@ public:
   void printInst(MCInst const *MI, uint64_t Address, StringRef Annot,
                  MCSubtargetInfo const &STI, raw_ostream &O) override;
   void printRegName(raw_ostream &OS, MCRegister reg) const override;
-  void printOperand(MCInst const *MI, unsigned OpNo, raw_ostream &O);
+  void printMemOperand(const MCInst *MI, int opNum, raw_ostream &O);
+  // NOTE: ToyGenAsmWriter.inc 需要调这两个函数
+  void printOperand(MCInst const *MI, unsigned OpNum, raw_ostream &O);
   void printOperand(MCInst const *MI, uint64_t _Address, unsigned OpNum,
-                    raw_ostream &O);
-  // defined in ToyGenAsmWriter.inc
+                    raw_ostream &O) {
+    printOperand(MI, OpNum, O);
+  }
+  // NOTE: ToyGenAsmWriter.inc 中定义
   std::pair<char const *, uint64_t> getMnemonic(MCInst const *MI) override;
   void printInstruction(MCInst const *MI, uint64_t Address, raw_ostream &OS);
   static char const *getRegisterName(MCRegister reg);

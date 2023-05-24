@@ -518,3 +518,37 @@ emitInstruction 的功能是把 MachineInstr 转换为 MCInst, 然后交给 MCSt
 
 llc 能正常结束, 但输出的 asm 基本为空, 原因是 ToyInstPrinter 中 printInst 等目前
 的实现为空
+
+** toy-16: printInst
+
+ToyInstPrinter 需要使用 td 生成的信息来实现 printInst, printRegName 等
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+
+  Debug Range Extension: foo
+          .globl  foo                             # -- Begin function foo
+          .type   foo,@function
+  foo:                                    # @foo
+  # %bb.0:
+          sw      ra, 4(sp)
+          addi    ra, zero, 255
+          sw      ra, 0(sp)
+          addi    ra, zero, 255
+          sw      ra, 0(sp)
+          sw      ra, 0(sp)
+  Lfunc_end0:
+          .size   foo, Lfunc_end0-foo
+                                          # -- End function
+#+end_example
+
+针对 mem operand 使用了自定义的 printMemOperand, 而不会调用默认的 printOperand.
+
+现在的代码看起来有两个问题:
+
+1. addi 不应用使用 ra, 需要定义更多的 register
+2. 最后两行 `sw ra, 0(sp)` 是什么
+

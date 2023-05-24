@@ -2,6 +2,9 @@
 #include "ToyInstPrinter.h"
 #include "llvm/MC/MCInst.h"
 
+#define DEBUG_TYPE "toy instr printer"
+#include <llvm/Support/Debug.h>
+
 using namespace llvm;
 
 #define PRINT_ALIAS_INSTR
@@ -9,12 +12,32 @@ using namespace llvm;
 
 void ToyInstPrinter::printInst(MCInst const *MI, uint64_t Address,
                                StringRef Annot, MCSubtargetInfo const &STI,
-                               raw_ostream &O) {}
+                               raw_ostream &O) {
+  printInstruction(MI, Address, O);
+}
 
-void ToyInstPrinter::printRegName(raw_ostream &OS, MCRegister reg) const {}
+void ToyInstPrinter::printRegName(raw_ostream &O, MCRegister reg) const {
+  O << StringRef(getRegisterName(reg)).lower();
+}
 
-void ToyInstPrinter::printOperand(MCInst const *MI, unsigned OpNo,
-                                  raw_ostream &OS) {}
+void ToyInstPrinter::printOperand(MCInst const *MI, unsigned OpNum,
+                                  raw_ostream &O) {
+  const MCOperand &Op = MI->getOperand(OpNum);
+  if (Op.isReg()) {
+    printRegName(O, Op.getReg());
+    return;
+  }
 
-void ToyInstPrinter::printOperand(MCInst const *MI, uint64_t _Address,
-                                  unsigned OpNum, raw_ostream &O) {}
+  if (Op.isImm()) {
+    O << Op.getImm();
+    return;
+  }
+}
+
+void ToyInstPrinter::printMemOperand(const MCInst *MI, int opNum,
+                                     raw_ostream &O) {
+  printOperand(MI, opNum + 1, O);
+  O << "(";
+  printOperand(MI, opNum, O);
+  O << ")";
+}
