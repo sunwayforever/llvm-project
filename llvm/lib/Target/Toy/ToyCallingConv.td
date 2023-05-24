@@ -1,1 +1,1 @@
-def CSR : CalleeSavedRegs<(add RA, SP)>;
+def CSR : CalleeSavedRegs<(add RA, S0, S1)>;

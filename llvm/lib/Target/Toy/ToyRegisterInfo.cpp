@@ -43,7 +43,7 @@ ToyRegisterInfo::getCalleeSavedRegs(MachineFunction const *MF) const {
 }
 
 BitVector ToyRegisterInfo::getReservedRegs(MachineFunction const &MF) const {
-  constexpr uint16_t ReservedCPURegs[] = {Toy::ZERO};
+  constexpr uint16_t ReservedCPURegs[] = {Toy::ZERO, Toy::RA, Toy::SP};
   BitVector Reserved(getNumRegs());
   for (auto const reg : ReservedCPURegs) {
     Reserved.set(reg);

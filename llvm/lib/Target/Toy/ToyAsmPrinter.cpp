@@ -18,5 +18,5 @@ void ToyAsmPrinter::emitInstruction(const MachineInstr *MI) {
     MCInst TmpInst0;
     MCInstLowering.Lower(&*I, TmpInst0);
     OutStreamer->emitInstruction(TmpInst0, getSubtargetInfo());
-  } while (++I != E);
+  } while (++I != E && I->isInsideBundle());
 }
