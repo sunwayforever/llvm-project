@@ -18,6 +18,7 @@ add_llvm_target(ToyCodeGen
   ToyFrameLowering.cpp
   ToyInstrInfo.cpp
   ToyRegisterInfo.cpp
+  ToyMCInstLower.cpp
 )
 
 add_subdirectory(TargetInfo)

@@ -484,4 +484,37 @@ eliminateFrameIndex 需要根据 frameindex 的值以及 stack_size 计算出正
   ...
 #+end_example
 
-出错的原因是没有实现 AsmPrinter 的 EmitInstruction
+出错的原因是没有实现 AsmPrinter 的 emitInstruction
+
+** toy-15: emitInstruction
+
+AsmPrinter 可以重写许多 emit 函数, 例如 emitFunctionBodyStart 等, 但这些都为默认
+的实现. 但 emitInstruction 是 target 必需实现的.
+
+emitInstruction 的功能是把 MachineInstr 转换为 MCInst, 然后交给 MCStream, 后者会
+调用到 MCInstPrinter 中的接口, 例如 printInst
+
+*** 测试
+
+#+begin_example
+  ./toy_test.sh
+
+  Debug Range Extension: foo
+          .globl  foo                             # -- Begin function foo
+          .type   foo,@function
+  foo:                                    # @foo
+  # %bb.0:
+
+
+
+
+
+
+  Lfunc_end0:
+          .size   foo, Lfunc_end0-foo
+                                          # -- End function
+
+#+end_example
+
+llc 能正常结束, 但输出的 asm 基本为空, 原因是 ToyInstPrinter 中 printInst 等目前
+的实现为空
