@@ -130,7 +130,7 @@ TheTargt 的 createXXX 调用以初始化 TheTarget 的 MRI, MII, STI, AsmInfo �
   MCRegisterInfo
 
   寄存器的编号, 名字等, 主要信息由 td 生成
-  
+
 - MII
 
   MCInstrInfo
@@ -166,7 +166,7 @@ TheTargt 的 createXXX 调用以初始化 TheTarget 的 MRI, MII, STI, AsmInfo �
 *** 测试
 
 #+begin_example
-  ~/source/llvm-toy#toy[17:43:49]@sunway-t14> ./toy_test.sh 
+  ~/source/llvm-toy#toy[17:43:49]@sunway-t14> ./toy_test.sh
   ; ModuleID = '/tmp/test.bc'
   source_filename = "toy_test/test.c"
   target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
@@ -359,20 +359,20 @@ PEI 操作的是 MachineInstr, 它发生成 scheduling 之后.
 并且把用于访问局部变量的 frameindex 转换为 Toy::STORE
 
 #+begin_example
-  ===== Instruction selection begins: %bb.0 ''    
-                                                
+  ===== Instruction selection begins: %bb.0 ''
+
   ISEL: Starting selection on root node: t5: ch = store<(store (s32) into %ir.1)> t0, Constant:i32<255>, FrameIndex:i32<0>, undef:i32
-  ISEL: Starting pattern match                    
-  Creating constant: t7: i32 = TargetConstant<0>  
+  ISEL: Starting pattern match
+  Creating constant: t7: i32 = TargetConstant<0>
     Morphed node: t5: ch = STORE<Mem:(store (s32) into %ir.1)> Constant:i32<255>, TargetFrameIndex:i32<0>, TargetConstant:i32<0>, t0
-  ISEL: Match complete!                           
-                                                
+  ISEL: Match complete!
+
   ISEL: Starting selection on root node: t1: i32 = Constant<255>
-  ISEL: Starting pattern match                    
-    Initial Opcode index to 51                    
+  ISEL: Starting pattern match
+    Initial Opcode index to 51
   Creating constant: t9: i32 = TargetConstant<255>
     Morphed node: t1: i32 = ADDI Register:i32 $physreg1, TargetConstant:i32<255>
-  ISEL: Match complete!                           
+  ISEL: Match complete!
 
   ISEL: Starting selection on root node: t0: ch,glue = EntryToken
 
@@ -418,12 +418,12 @@ ToyRegisterInfo 需要实现 `getCalleeSavedRegs` 等函数, 后续 RA, PEI 等�
   0.      Program arguments: ./build/bin/llc /tmp/test.bc -march=toy --debug
   1.      Running pass 'Function Pass Manager' on module '/tmp/test.bc'.
   2.      Running pass 'Prologue/Epilogue Insertion & Frame Finalization' on function '@foo'
-   ...       
+   ...
 
   #9 0x000000000134b9d2 insertCSRSaves(llvm::MachineBasicBlock&,
    llvm::ArrayRef<llvm::CalleeSavedInfo>)
    /home/sunway/source/llvm-toy/llvm/lib/CodeGen/PrologEpilogInserter.cpp:602:5
- 
+
   #10 0x0000000001348994 (anonymous
   namespace)::PEI::spillCalleeSavedRegs(llvm::MachineFunction&)
   /home/sunway/source/llvm-toy/llvm/lib/CodeGen/PrologEpilogInserter.cpp:681:41
@@ -435,3 +435,25 @@ ToyRegisterInfo 需要实现 `getCalleeSavedRegs` 等函数, 后续 RA, PEI 等�
 #+end_example
 
 出错的原因是 PEI 生成 prologue 时为了把 CSR 保存到栈上, 需要实现 storeRegToStackSlot
+
+** toy-13: storeRegToStackSlot
+
+storeRegToStackSlot 需要生成 MachineInstr, 把 reg (例如 RA) 保存到栈上
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+  Found roots: %bb.0
+  Skipping pass 'Shrink Wrapping analysis' on function foo
+  alloc FI(1) at SP[-4]
+  alloc FI(0) at SP[-8]
+  STORE killed $ra, %stack.1, 0
+  STORE killed $ra, %stack.1, 0
+  STORE killed $ra, %stack.1, 0
+  STORE killed $ra, %stack.1, 0
+  ....
+#+end_example
+
+程序陷入死循环, 原因是 eliminateFrameIndex 目前实现为空.

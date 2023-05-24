@@ -3,6 +3,8 @@
 #include "TargetDesc/ToyTargetDesc.h"
 #include "ToySubtarget.h"
 
+#define DEBUG_TYPE "toy register info"
+
 #define GET_REGINFO_TARGET_DESC
 #include "ToyGenRegisterInfo.inc"
 
@@ -14,6 +16,8 @@ ToyRegisterInfo::ToyRegisterInfo(ToySubtarget const &ST, unsigned HwMode)
 bool ToyRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                           int SPAdj, unsigned FIOperandNum,
                                           RegScavenger *RS) const {
+  MachineInstr &MI = *II;
+  LLVM_DEBUG(errs() << MI);
   return true;
 }
 

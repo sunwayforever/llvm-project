@@ -2,6 +2,7 @@
 #ifndef TOY_INSTR_INFO_H
 #define TOY_INSTR_INFO_H
 
+#include "TargetDesc/ToyTargetDesc.h"
 #include "llvm/CodeGen/TargetInstrInfo.h"
 
 #define GET_INSTRINFO_HEADER
@@ -12,6 +13,12 @@ class ToyInstrInfo : public ToyGenInstrInfo {
 
 public:
   ToyInstrInfo();
+  void storeRegToStackSlot(MachineBasicBlock &MBB,
+                           MachineBasicBlock::iterator MI, Register SrcReg,
+                           bool isKill, int FrameIndex,
+                           const TargetRegisterClass *RC,
+                           const TargetRegisterInfo *TRI,
+                           Register VReg) const override;
 };
 
 } // namespace llvm

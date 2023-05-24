@@ -7,3 +7,18 @@
 using namespace llvm;
 
 ToyInstrInfo::ToyInstrInfo() : ToyGenInstrInfo() {}
+
+void ToyInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
+                                       MachineBasicBlock::iterator MBBI,
+                                       Register SrcReg, bool isKill, int FI,
+                                       const TargetRegisterClass *RC,
+                                       const TargetRegisterInfo *TRI,
+                                       Register VReg) const {
+  DebugLoc DL;
+
+  unsigned Opc = Toy::STORE;
+  BuildMI(MBB, MBBI, DL, get(Opc))
+      .addReg(SrcReg, getKillRegState(isKill))
+      .addFrameIndex(FI)
+      .addImm(0);
+}
