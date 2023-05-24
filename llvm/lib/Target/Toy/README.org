@@ -457,3 +457,31 @@ storeRegToStackSlot 需要生成 MachineInstr, 把 reg (例如 RA) 保存到栈�
 #+end_example
 
 程序陷入死循环, 原因是 eliminateFrameIndex 目前实现为空.
+
+** toy-14: eliminateFrameIndex
+
+PEI 会调用 eliminateFrameIndex 把使用了 frameindex 的 MachineInstr (例如 `STORE
+ra, addr, 0`) 修改成 `STORE ra, sp, N`.
+
+eliminateFrameIndex 需要根据 frameindex 的值以及 stack_size 计算出正确的偏移量,
+然后修改 MI 的 operand, 把原来的 (addr, 0)替换成 (sp, offset)
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+  EmitInstruction not implemented
+  UNREACHABLE executed at /home/sunway/source/llvm-toy/llvm/include/llvm/CodeGen/AsmPrinter.h:572!
+  Stack dump:
+  ...
+  #9 0x0000000000c410f6 llvm::AsmPrinter::emitFunctionBody()
+  /home/sunway/source/llvm-toy/llvm/lib/CodeGen/AsmPrinter/AsmPrinter.cpp:1725:13
+ 
+  #10 0x0000000000c10671
+  llvm::AsmPrinter::runOnMachineFunction(llvm::MachineFunction&)
+  /home/sunway/source/llvm-toy/llvm/include/llvm/CodeGen/AsmPrinter.h:4
+  ...
+#+end_example
+
+出错的原因是没有实现 AsmPrinter 的 EmitInstruction

@@ -2,6 +2,7 @@
 #include "ToyRegisterInfo.h"
 #include "TargetDesc/ToyTargetDesc.h"
 #include "ToySubtarget.h"
+#include <llvm/CodeGen/MachineFrameInfo.h>
 
 #define DEBUG_TYPE "toy register info"
 
@@ -18,6 +19,21 @@ bool ToyRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                           RegScavenger *RS) const {
   MachineInstr &MI = *II;
   LLVM_DEBUG(errs() << MI);
+  int i = 0;
+  while (!MI.getOperand(i).isFI()) {
+    ++i;
+    assert(i < MI.getNumOperands());
+  }
+  int FI = MI.getOperand(i).getIndex();
+  MachineFunction &MF = *MI.getParent()->getParent();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
+  int64_t offset = MFI.getObjectOffset(FI);
+  uint64_t stack_size = MFI.getStackSize();
+  offset += (int64_t)stack_size;
+
+  MI.getOperand(i).ChangeToRegister(Toy::SP, false);
+  MI.getOperand(i + 1).ChangeToImmediate(offset);
+
   return true;
 }
 
