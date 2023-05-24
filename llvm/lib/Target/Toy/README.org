@@ -571,3 +571,28 @@ ToyInstPrinter 需要使用 td 生成的信息来实现 printInst, printRegName 
                                           # -- End function
 #+end_example
 
+** toy-18: add more insns
+
+添加 store/add/and/or/andi/ori 指令. 由于目前不涉及到 object 文件的生成, 所以去
+掉了 td 中关于指令格式的内容.
+
+添加指令时 patten 可以有两种写法:
+
+1. 写在 Instruct 的 patten 中, 例如:
+
+   #+begin_example
+     def LOAD : ToyInst<(outs GPR:$ra), (ins mem:$addr), "lw \t$ra, $addr",
+               [(set GPR:$ra, (load AddrFI:$addr))],
+               IIAlu>;
+   #+end_example
+
+2. 使用 Pat, 例如:
+
+   #+begin_example
+     def LOAD : ToyInst<(outs GPR:$ra), (ins mem:$addr), "lw \t$ra, $addr", [], IIAlu>;
+
+     def : Pat<(load AddrFI:$addr),
+               (LOAD  AddrFI:$addr)>;
+   #+end_example
+
+
