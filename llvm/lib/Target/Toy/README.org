@@ -396,3 +396,42 @@ PEI 操作的是 MachineInstr, 它发生成 scheduling 之后.
 #+end_example
 
 出错的原因是 schedule 时需要 subtarget 实现 getRegisterInfo
+
+** toy-12: ToyRegisterInfo
+
+ToyRegisterInfo 需要实现 `getCalleeSavedRegs` 等函数, 后续 RA, PEI 等会使用它
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+  ,*** Final schedule ***
+  SU(1): t1: i32 = ADDI Register:i32 $zero, TargetConstant:i32<255>
+
+  SU(0): t5: ch = STORE<Mem:(store (s32) into %ir.1)> t1, TargetFrameIndex:i32<0>,
+  TargetConstant:i32<0>, t0
+  ...
+  Target didn't implement TargetInstrInfo::storeRegToStackSlot!
+
+  Stack dump:
+  0.      Program arguments: ./build/bin/llc /tmp/test.bc -march=toy --debug
+  1.      Running pass 'Function Pass Manager' on module '/tmp/test.bc'.
+  2.      Running pass 'Prologue/Epilogue Insertion & Frame Finalization' on function '@foo'
+   ...       
+
+  #9 0x000000000134b9d2 insertCSRSaves(llvm::MachineBasicBlock&,
+   llvm::ArrayRef<llvm::CalleeSavedInfo>)
+   /home/sunway/source/llvm-toy/llvm/lib/CodeGen/PrologEpilogInserter.cpp:602:5
+ 
+  #10 0x0000000001348994 (anonymous
+  namespace)::PEI::spillCalleeSavedRegs(llvm::MachineFunction&)
+  /home/sunway/source/llvm-toy/llvm/lib/CodeGen/PrologEpilogInserter.cpp:681:41
+
+  #11 0x000000000134768a (anonymous
+  namespace)::PEI::runOnMachineFunction(llvm::MachineFunction&)
+  /home/sunway/source/llvm-toy/llvm/lib/CodeGen/PrologEpilogInserter.cpp:252:3
+
+#+end_example
+
+出错的原因是 PEI 生成 prologue 时为了把 CSR 保存到栈上, 需要实现 storeRegToStackSlot

@@ -2,7 +2,9 @@ include "ToyInstrFormats.td"
 
 def imm12 : Operand<i32>, ImmLeaf<i32, [{return isInt<12>(Imm);}]>;
 
-def mem : Operand<iPTR>;
+def mem : Operand<iPTR> {
+  let MIOperandInfo = (ops GPR, imm12);
+}
 
 def ADDI : InstI<0b0010011, 0b000, (outs GPR:$rd), (ins GPR:$rs1, imm12:$imm),
           "addi \t$rd, $rs1, $imm",
