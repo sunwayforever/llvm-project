@@ -599,3 +599,53 @@ ToyInstPrinter 需要使用 td 生成的信息来实现 printInst, printRegName 
 
 定义 ADD, DIV, REM, ... 时有许多重复的内容, 可以使用 td 的 class 简化这些指令
 的定义
+
+** toy-20: global address
+
+目前 toy 还不支持 global address, 所以编译下面的程序会报错:
+
+#+begin_example
+  $> cat toy_test/test.c
+  int x = 0;
+  void foo() {
+      int l = x;
+  }
+
+  $> ./toy_test.sh
+
+  LLVM ERROR: Cannot select: t4: i32,ch = load<(dereferenceable load (s32) from
+  @x)> t0, GlobalAddress:i32<ptr @x> 0, undef:i32
+#+end_example
+
+对于 global address 的处理发生成 legalize 阶段, ToyTargetLower 需要通过
+`setOperationAction` 标记 ISD::GlobalAddress 的 action 为 custom, 同时实现
+LowerOperation 来处理这个 node: 生成 `add (lui %hi(x)) %lo(x))` 对应的 node
+
+*** 测试
+
+#+begin_example
+  $> ./toy_test.sh
+
+  ===== Instruction selection ends:
+  Selected selection DAG: %bb.0 'foo:'
+  SelectionDAG has 9 nodes:
+        t9: i32 = LUI TargetGlobalAddress:i32<ptr @x> 0 [TF=1]
+      t10: i32 = ADDI t9, TargetGlobalAddress:i32<ptr @x> 0 [TF=2]
+      t0: ch,glue = EntryToken
+    t4: i32,ch = LOAD<Mem:(dereferenceable load (s32) from @x)> t10, t0
+    t6: ch = STORE<Mem:(store (s32) into %ir.1)> t4, TargetFrameIndex:i32<0>, TargetConstant:i32<0>, t4:1
+  ...
+  foo:                                    # @foo
+  # %bb.0:
+  unknown operand type
+  UNREACHABLE executed at /home/sunway/source/llvm-toy/llvm/lib/Target/Toy/ToyMCInstLower.cpp:25!
+
+  ...
+
+  #8 0x0000000000c26775 llvm::ToyMCInstLower::LowerOperand(llvm::MachineOperand
+  const&) const
+  /home/sunway/source/llvm-toy/llvm/lib/Target/Toy/ToyMCInstLower.cpp:27:33
+#+end_example
+
+isel 成功, 但在 AsmPrinter 时出错, 因为 LUI 及 ADDI 的 operand 是 GlobalAddress,
+当前的 LowerOperand 只支持 register 和 imm

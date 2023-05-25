@@ -6,8 +6,20 @@
 #include <llvm/CodeGen/TargetLowering.h>
 
 namespace llvm {
+
+namespace ToyISD {
+enum NodeType {
+  FIRST_NUMBER = ISD::BUILTIN_OP_END,
+  Hi,
+  Lo,
+};
+}
+
 class ToySubtarget;
 class ToyTargetLowering : public TargetLowering {
+private:
+  SDValue lowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+
 public:
   ToyTargetLowering(const TargetMachine &TM, ToySubtarget const &STI);
 
@@ -21,6 +33,8 @@ public:
                       SmallVectorImpl<ISD::OutputArg> const &Outs,
                       SmallVectorImpl<SDValue> const &OutVals, SDLoc const &dl,
                       SelectionDAG &DAG) const override;
+  SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
+  const char *getTargetNodeName(unsigned Opcode) const override;
 };
 } // namespace llvm
 

@@ -27,7 +27,6 @@ MCOperand ToyMCInstLower::LowerOperand(const MachineOperand &MO) const {
     return MCOperand::createReg(MO.getReg());
   case MachineOperand::MO_Immediate:
     return MCOperand::createImm(MO.getImm());
-    break;
   }
 
   return MCOperand();
