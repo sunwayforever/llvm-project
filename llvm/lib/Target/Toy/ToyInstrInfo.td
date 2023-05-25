@@ -7,50 +7,28 @@ def mem : Operand<iPTR> {
   let PrintMethod = "printMemOperand";
 }
 
-def ADDI : InstI<(outs GPR:$rd), (ins GPR:$rs1, imm12:$imm),
-          "addi \t$rd, $rs1, $imm",
-          [(set GPR:$rd, (add GPR:$rs1, imm12:$imm))],
-          IIAlu>;
+class ArithLogicI <string inst, SDNode node>:
+      InstI<(outs GPR:$rd), (ins GPR:$rs1, imm12:$imm),
+      !strconcat(inst, "\t$rd, $rs1, $imm"),
+      [(set GPR:$rd, (node GPR:$rs1, imm12:$imm))],
+      IIAlu>;
 
-def ADD : InstR<(outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
-          "add \t$rd, $rs1, $rs2",
-          [(set GPR:$rd, (add GPR:$rs1, GPR:$rs2))],
-          IIAlu>;
+def ADDI : ArithLogicI<"addi", add>;
+def ANDI : ArithLogicI<"andi", and>;
+def ORI : ArithLogicI<"ori", or>;
 
-def MUL : InstR<(outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
-          "mul \t$rd, $rs1, $rs2",
-          [(set GPR:$rd, (mul GPR:$rs1, GPR:$rs2))],
-          IIAlu>;
+class ArithLogicR <string inst, SDNode node>:
+      InstI<(outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
+      !strconcat(inst, "\t$rd, $rs1, $rs2"),
+      [(set GPR:$rd, (node GPR:$rs1, GPR:$rs2))],
+      IIAlu>;
 
-def DIV : InstR<(outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
-          "div \t$rd, $rs1, $rs2",
-          [(set GPR:$rd, (sdiv GPR:$rs1, GPR:$rs2))],
-          IIAlu>;
-
-def REM : InstR<(outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
-          "rem \t$rd, $rs1, $rs2",
-          [(set GPR:$rd, (srem GPR:$rs1, GPR:$rs2))],
-          IIAlu>;
-
-def ANDI : InstI<(outs GPR:$rd), (ins GPR:$rs1, imm12:$imm),
-          "andi \t$rd, $rs1, $imm",
-          [(set GPR:$rd, (and GPR:$rs1, imm12:$imm))],
-          IIAlu>;
-
-def ORI : InstI<(outs GPR:$rd), (ins GPR:$rs1, imm12:$imm),
-          "ori \t$rd, $rs1, $imm",
-          [(set GPR:$rd, (or GPR:$rs1, imm12:$imm))],
-          IIAlu>;
-
-def AND : InstR<(outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
-          "and \t$rd, $rs1, $rs2",
-          [(set GPR:$rd, (and GPR:$rs1, GPR:$rs2))],
-          IIAlu>;
-
-def OR : InstR<(outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
-          "or \t$rd, $rs1, $rs2",
-          [(set GPR:$rd, (or GPR:$rs1, GPR:$rs2))],
-          IIAlu>;
+def ADD : ArithLogicR<"add", add>;
+def MUL : ArithLogicR<"mul", mul>;
+def DIV : ArithLogicR<"div", sdiv>;
+def REM : ArithLogicR<"rem", srem>;
+def AND : ArithLogicR<"and", and>;
+def OR : ArithLogicR<"or", or>;
 
 def AddrFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantParent]>;
 
