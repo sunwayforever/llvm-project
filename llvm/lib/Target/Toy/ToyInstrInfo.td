@@ -67,4 +67,5 @@ def JALR : InstI<(outs GPR:$rd),(ins GPR:$rs1, imm12:$imm12),
            IIAlu>;
 
 // def RET : InstI<(outs),(ins), "jalr zero, 0(ra)", [(ToyRET)], IIAlu>;
+let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
 def RET : Pseudo<(outs),(ins), [(ToyRET)]>, PseudoInstExpansion<(JALR ZERO, RA, 0)>;

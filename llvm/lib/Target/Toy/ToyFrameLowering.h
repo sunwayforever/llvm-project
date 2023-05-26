@@ -5,9 +5,13 @@
 #include "llvm/CodeGen/TargetFrameLowering.h"
 
 namespace llvm {
+class ToySubtarget;
 class ToyFrameLowering : public TargetFrameLowering {
+private:
+  ToySubtarget &STI;
+
 public:
-  ToyFrameLowering();
+  ToyFrameLowering(ToySubtarget &sti);
   void emitPrologue(MachineFunction &MF, MachineBasicBlock &MBB) const override;
   void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const override;
   bool hasFP(const MachineFunction &MF) const override;

@@ -688,3 +688,51 @@ ToyMCInstLower 类似的代码, 把 Toy::Ret lower 成 JALR 对应的 MCInst.
 
 如果不考虑生成 obj, 也可以直接 =def RET : InstI<(outs),(ins), "jalr zero,0(ra)",
 [(ToyRET)], IIAlu>;=, 这样使用默认的 ToyMCInstLower 就可以处理.
+
+** toy-25: emitPrologue and emitEpilogue
+
+当前生成的代码是错误的, 例如:
+
+#+begin_example
+  $> cat test.c
+  void foo() {
+      int x = 1;
+      int y = x;
+      int z = y;
+  }
+
+  $> ./toy_test.sh
+  foo:                                    # @foo
+  # %bb.0:
+          addi    t0, zero, 1
+          sw      t0, 8(sp)
+          lw      t0, 8(sp)
+          sw      t0, 4(sp)
+          lw      t0, 4(sp)
+          sw      t0, 0(sp)
+          jalr zero, 0(ra)
+#+end_example
+
+foo 的入口需要有 `addi sp, sp, -12`, 称为 prologue
+foo 的返回前需要有 `addi sp, sp, 12`, 称为 epilogue
+
+其中 `8` 是 stack size, 取决于:
+
+1. 是否保存 fp, 如果有 fp 且没有使用 omit-frame-pointer 则需要保存
+
+2. 是否保存 ra, 如果函数不是 leaf function 则需要保存
+
+3. 是否保存 callee saved reg (CSR), 如果函数使用了它们, 则需要保存和恢复
+
+4. 局部变量占用的栈空间
+
+5. ...
+
+emitPrologue 本身并不负责 CSR 的 spill 和 restore, 它们由 PEI 负责
+(spillCalleeSavedRegs)
+
+emitPrologue 发生在 schedule 及 RA 之后, 所以它们操作的是 MachineInstr 和物理寄
+存器
+
+epilogue 与 prologue 对应, 但如果函数不需要返回, 则不需要 epilogue (参考
+ToyInstrInfo.td 中的 `isResult = 1`)

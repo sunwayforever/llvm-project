@@ -5,5 +5,3 @@ cat /tmp/test.ll
 (./build/bin/llc /tmp/test.bc -march=toy --debug -o - |tee /tmp/test.s) \
     && (riscv64-linux-gnu-gcc -march=rv32g -mabi=ilp32 -c -O0 /tmp/test.s -o /tmp/test.o && riscv64-linux-gnu-objdump -d /tmp/test.o)
 
-riscv64-linux-gnu-gcc toy_test/main.c /tmp/test.s -O0 -o /tmp/a.out -static
-qemu-riscv64 /tmp/a.out

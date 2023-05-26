@@ -1,4 +1,5 @@
-int x = 0;
 void foo() {
-    x = 1;
+    int x = 1;
+    int y = x;
+    int z = y;
 }
