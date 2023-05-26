@@ -736,3 +736,33 @@ emitPrologue 发生在 schedule 及 RA 之后, 所以它们操作的是 MachineI
 
 epilogue 与 prologue 对应, 但如果函数不需要返回, 则不需要 epilogue (参考
 ToyInstrInfo.td 中的 `isResult = 1`)
+
+** toy-26: LowerCall
+
+call 需要 ToyISelLowering::LowerCall 来处理, 它负责按调用约定处理函数调用的参数
+(例如放在特定物理寄存器或放在栈上), 然后生成跳转指令, 并处理函数返回的结果 (例如
+从特定物理寄存器或栈上获得结果)
+
+当前的实现只生成了跳转指令, 所以只能支持 `void foo()` 类型的函数调用
+
+*** 测试
+
+#+begin_example
+  #> ./toy_test.sh
+
+          .text
+          .file   "test.c"
+          .globl  foo                             # -- Begin function foo
+          .type   foo,@function
+  foo:                                    # @foo
+  # %bb.0:
+          lui t0, %hi(foo)
+          addi    t0, t0, %lo(foo)
+          jalr ra, 0(t0)
+          jalr zero, 0(ra)
+  Lfunc_end0:
+          .size   foo, Lfunc_end0-foo
+                                          # -- End function
+#+end_example
+
+能生成 `jalr ra, 0(t0)` , 但有一个问题: 没有针对 ra 做 CSR 的 spill 和 restore

@@ -21,6 +21,10 @@ public:
   void emitInstruction(const MachineInstr *MI) override;
   bool emitPseudoExpansionLowering(MCStreamer &OutStreamer,
                                    const MachineInstr *MI);
+  bool lowerOperand(const MachineOperand &MO, MCOperand &MCOp) const {
+    MCOp = MCInstLowering.LowerOperand(MO);
+    return true;
+  }
 };
 } // namespace llvm
 

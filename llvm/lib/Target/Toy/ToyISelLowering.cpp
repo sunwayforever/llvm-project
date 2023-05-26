@@ -62,7 +62,34 @@ const char *ToyTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "ToyISD::Lo";
   case ToyISD::Ret:
     return "ToyISD::Ret";
+  case ToyISD::Call:
+    return "ToyISD::Call";
   default:
     return NULL;
   }
+}
+
+SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                                     SmallVectorImpl<SDValue> &InVals) const {
+  SelectionDAG &DAG = CLI.DAG;
+  SDLoc DL = CLI.DL;
+  SDValue Chain = CLI.Chain;
+  SDValue Callee = CLI.Callee;
+
+  GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
+
+  EVT Ty = getPointerTy(DAG.getDataLayout());
+  SDValue Hi =
+      DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_HI);
+  SDValue Lo =
+      DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_LO);
+  SDValue MNHi = SDValue(DAG.getMachineNode(Toy::LUI, DL, Ty, Hi), 0);
+
+  Callee = SDValue(DAG.getMachineNode(Toy::ADDI, DL, Ty, MNHi, Lo), 0);
+
+  SmallVector<SDValue, 8> Ops(1, Chain);
+  Ops.push_back(Callee);
+  SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
+  Chain = DAG.getNode(ToyISD::Call, DL, NodeTys, Ops);
+  return Chain;
 }

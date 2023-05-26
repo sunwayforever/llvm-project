@@ -69,3 +69,10 @@ def JALR : InstI<(outs GPR:$rd),(ins GPR:$rs1, imm12:$imm12),
 // def RET : InstI<(outs),(ins), "jalr zero, 0(ra)", [(ToyRET)], IIAlu>;
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
 def RET : Pseudo<(outs),(ins), [(ToyRET)]>, PseudoInstExpansion<(JALR ZERO, RA, 0)>;
+
+def SDT_Call      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
+
+def ToyCall : SDNode<"ToyISD::Call", SDT_Call,
+                             [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+
+def CALL : InstI<(outs),(ins GPR:$rs1), "jalr ra, 0($rs1)", [(ToyCall GPR:$rs1)], IIAlu>;
