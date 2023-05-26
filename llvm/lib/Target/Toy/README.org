@@ -668,3 +668,7 @@ MCOperand.
 
 ToyMCExpr 保存着原始的 imm 和 kind (hi/lo) 信息. ToyInstPrinter 会调用到
 ToyMCExpr::printImpl 最终根据它保存的 kind 打印出 `%hi` 和 `%lo`
+
+** toy-23: store global variable
+
+前面的代码不支持全局变量的赋值, 因为缺少 `store $rs1, $rs2` 这个 pattern

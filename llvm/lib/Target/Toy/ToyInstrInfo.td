@@ -36,7 +36,8 @@ def LUI : InstU<(outs GPR:$rd), (ins imm20:$imm),
 
 def AddrFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantParent]>;
 
-def STORE : ToyInst<(outs), (ins GPR:$ra, mem:$addr), "sw \t$ra, $addr", [], IIAlu>;
+def STOREFI : ToyInst<(outs), (ins GPR:$ra, mem:$addr), "sw \t$ra, $addr", [], IIAlu>;
+def STORE : ToyInst<(outs), (ins GPR:$ra, GPR:$rb), "sw \t$ra, 0($rb)", [], IIAlu>;
 
 def LOADFI : ToyInst<(outs GPR:$ra), (ins mem:$addr), "lw \t$ra, $addr", [], IIAlu>;
 def LOAD : ToyInst<(outs GPR:$ra), (ins GPR:$x), "lw \t$ra, $x", [], IIAlu>;
@@ -45,14 +46,16 @@ def : Pat<(i32 imm12:$in),
           (ADDI ZERO, imm12:$in)>;
 
 def : Pat<(store GPR:$ra, AddrFI:$addr),
-          (STORE GPR:$ra, AddrFI:$addr)>;
+          (STOREFI GPR:$ra, AddrFI:$addr)>;
+def : Pat<(store GPR:$x, GPR:$y),
+          (STORE GPR:$x, GPR:$y)>;
 
 // NOTE: 使用 Pat 等价与下面的 LOAD 定义
 // def LOAD : ToyInst<(outs GPR:$ra), (ins mem:$addr), "lw \t$ra, $addr",
 //          [(set GPR:$ra, (load AddrFI:$addr))],
 //          IIAlu>;
 def : Pat<(load AddrFI:$addr),
-          (LOADFI  AddrFI:$addr)>;
-
+          (LOADFI AddrFI:$addr)>;
 def : Pat<(load GPR:$x),
           (LOAD GPR:$x)>;
+
