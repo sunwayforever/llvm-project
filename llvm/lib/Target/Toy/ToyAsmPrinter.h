@@ -19,6 +19,8 @@ public:
 
   virtual StringRef getPassName() const override { return "toy asm printer"; }
   void emitInstruction(const MachineInstr *MI) override;
+  bool emitPseudoExpansionLowering(MCStreamer &OutStreamer,
+                                   const MachineInstr *MI);
 };
 } // namespace llvm
 

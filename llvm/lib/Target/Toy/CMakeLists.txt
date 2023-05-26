@@ -6,6 +6,7 @@ tablegen(LLVM ToyGenDAGISel.inc -gen-dag-isel)
 tablegen(LLVM ToyGenAsmWriter.inc -gen-asm-writer)
 tablegen(LLVM ToyGenInstrInfo.inc -gen-instr-info)
 tablegen(LLVM ToyGenRegisterInfo.inc -gen-register-info)
+tablegen(LLVM ToyGenMCPseudoLowering.inc -gen-pseudo-lowering)
 add_public_tablegen_target(ToyCommonTableGen)
 
 add_llvm_target(ToyCodeGen

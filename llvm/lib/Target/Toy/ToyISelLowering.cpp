@@ -25,8 +25,10 @@ ToyTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
                                bool IsVarArg,
                                SmallVectorImpl<ISD::OutputArg> const &Outs,
                                SmallVectorImpl<SDValue> const &OutVals,
-                               SDLoc const &dl, SelectionDAG &DAG) const {
-  return Chain;
+                               SDLoc const &DL, SelectionDAG &DAG) const {
+  SmallVector<SDValue, 4> Ops(1, Chain);
+  Ops[0] = Chain;
+  return DAG.getNode(ToyISD::Ret, DL, MVT::Other, Ops);
 }
 
 SDValue ToyTargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
@@ -58,6 +60,8 @@ const char *ToyTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "ToyISD::Hi";
   case ToyISD::Lo:
     return "ToyISD::Lo";
+  case ToyISD::Ret:
+    return "ToyISD::Ret";
   default:
     return NULL;
   }

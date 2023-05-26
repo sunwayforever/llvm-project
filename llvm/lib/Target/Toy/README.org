@@ -672,3 +672,19 @@ ToyMCExpr::printImpl 最终根据它保存的 kind 打印出 `%hi` 和 `%lo`
 ** toy-23: store global variable
 
 前面的代码不支持全局变量的赋值, 因为缺少 `store $rs1, $rs2` 这个 pattern
+
+** toy-24: LowerReturn
+
+return 语句需要通过 ToyISelLowering::LowerReturn 处理. 这个过程发生在最初的
+SelectionDAGBuilder 阶段.
+
+LowerReturn 需要分析需要 return 的值, 生成一些指令把这些值按调用约定处理 (放在寄
+存器, 放在栈上), 最后还生成一个 ToyISD::Ret.
+
+目前的 LowerReturn 只处理了 return void 的情况
+
+ToyISD::Ret 使用了自带的 PseudoInstExpansion 机制, 后者会使用 tablegen 生成和
+ToyMCInstLower 类似的代码, 把 Toy::Ret lower 成 JALR 对应的 MCInst.
+
+如果不考虑生成 obj, 也可以直接 =def RET : InstI<(outs),(ins), "jalr zero,0(ra)",
+[(ToyRET)], IIAlu>;=, 这样使用默认的 ToyMCInstLower 就可以处理.

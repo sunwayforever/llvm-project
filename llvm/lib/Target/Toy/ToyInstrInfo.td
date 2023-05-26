@@ -59,3 +59,12 @@ def : Pat<(load AddrFI:$addr),
 def : Pat<(load GPR:$x),
           (LOAD GPR:$x)>;
 
+def ToyRET : SDNode<"ToyISD::Ret", SDTNone,
+                             [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+
+def JALR : InstI<(outs GPR:$rd),(ins GPR:$rs1, imm12:$imm12),
+           "jalr $rd, ${imm12}(${rs1})", [],
+           IIAlu>;
+
+// def RET : InstI<(outs),(ins), "jalr zero, 0(ra)", [(ToyRET)], IIAlu>;
+def RET : Pseudo<(outs),(ins), [(ToyRET)]>, PseudoInstExpansion<(JALR ZERO, RA, 0)>;
