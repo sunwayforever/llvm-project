@@ -15,7 +15,7 @@ private:
 
 public:
   ToyAsmPrinter(TargetMachine &TM, std::unique_ptr<MCStreamer> Streamer)
-      : AsmPrinter(TM, std::move(Streamer)) {}
+      : AsmPrinter(TM, std::move(Streamer)), MCInstLowering(*this) {}
 
   virtual StringRef getPassName() const override { return "toy asm printer"; }
   void emitInstruction(const MachineInstr *MI) override;

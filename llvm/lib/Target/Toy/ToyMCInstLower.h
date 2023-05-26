@@ -7,9 +7,14 @@ class MCInst;
 class MCOperand;
 class MachineInstr;
 class MachineOperand;
+class ToyAsmPrinter;
 class ToyMCInstLower {
+private:
+  ToyAsmPrinter &AsmPrinter;
+  MCOperand LowerSymbolOperand(const MachineOperand &MO) const;
+
 public:
-  ToyMCInstLower(){};
+  ToyMCInstLower(ToyAsmPrinter &printer) : AsmPrinter(printer){};
   void Lower(const MachineInstr *MI, MCInst &OutMI) const;
   MCOperand LowerOperand(const MachineOperand &MO) const;
 };

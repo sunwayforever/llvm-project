@@ -656,3 +656,15 @@ isel 成功, 但在 AsmPrinter 时出错, 因为 LUI 及 ADDI 的 operand 是 Gl
 成 Toy::ADDI, 省略后续 isel 时 ISD::ADD 到 Toy::ADDI 的过程. 由于 isel 的输入可
 能是 machine code, 所以 ToyDAGToDAGISel 的 Select 需要忽略掉 SDNode 已经是
 machine code 的情况
+
+** toy-22: lower MachineOperand to MCOperand
+
+前面 LUI 转换成 MacineInstr 后它的 MachineOperand 是
+MO_GlobalAddress. ToyMCInstLower 的 LowerOperand 需要把它 lower 成
+MCOperand.
+
+这个 MCOperand 的 kind 既不是 register, 也不是 immediate, 因此需要定义ToyMCExpr,
+做为 MCOperand 的 expr.
+
+ToyMCExpr 保存着原始的 imm 和 kind (hi/lo) 信息. ToyInstPrinter 会调用到
+ToyMCExpr::printImpl 最终根据它保存的 kind 打印出 `%hi` 和 `%lo`

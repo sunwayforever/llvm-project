@@ -1,5 +1,6 @@
 // 2023-05-22 15:15
 #include "ToyInstPrinter.h"
+#include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"
 
 #define DEBUG_TYPE "toy instr printer"
@@ -32,6 +33,8 @@ void ToyInstPrinter::printOperand(MCInst const *MI, unsigned OpNum,
     O << Op.getImm();
     return;
   }
+
+  Op.getExpr()->print(O, &MAI, true);
 }
 
 void ToyInstPrinter::printMemOperand(const MCInst *MI, int opNum,
