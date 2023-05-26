@@ -5,7 +5,13 @@ using namespace llvm;
 
 char ToyDAGToDAGISel::ID = 0;
 
-void ToyDAGToDAGISel::Select(SDNode *N) { SelectCode(N); }
+void ToyDAGToDAGISel::Select(SDNode *N) {
+  if (N->isMachineOpcode()) {
+    N->setNodeId(-1);
+    return;
+  }
+  SelectCode(N);
+}
 
 bool ToyDAGToDAGISel::SelectAddrFI(SDNode *Parent, SDValue Addr, SDValue &Base,
                                    SDValue &Offset) {

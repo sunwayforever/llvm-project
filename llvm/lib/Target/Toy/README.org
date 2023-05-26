@@ -649,3 +649,10 @@ LowerOperation 来处理这个 node: 生成 `add (lui %hi(x)) %lo(x))` 对应的
 
 isel 成功, 但在 AsmPrinter 时出错, 因为 LUI 及 ADDI 的 operand 是 GlobalAddress,
 当前的 LowerOperand 只支持 register 和 imm
+
+** toy-21: directly lower to machine code
+
+前面的 LowerOperation 把 global address lower 成了 ISD:ADD, 实际上可以直接 lower
+成 Toy::ADDI, 省略后续 isel 时 ISD::ADD 到 Toy::ADDI 的过程. 由于 isel 的输入可
+能是 machine code, 所以 ToyDAGToDAGISel 的 Select 需要忽略掉 SDNode 已经是
+machine code 的情况

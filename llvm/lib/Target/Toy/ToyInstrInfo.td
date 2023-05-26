@@ -31,15 +31,8 @@ def REM : ArithLogicR<"rem", srem>;
 def AND : ArithLogicR<"and", and>;
 def OR : ArithLogicR<"or", or>;
 
-def ToyHi    : SDNode<"ToyISD::Hi", SDTIntUnaryOp>;
-def ToyLo    : SDNode<"ToyISD::Lo", SDTIntUnaryOp>;
-
 def LUI : InstU<(outs GPR:$rd), (ins imm20:$imm),
           "lui $rd, $imm", [], IIAlu>;
-
-def : Pat<(ToyHi tglobaladdr:$in), (LUI tglobaladdr:$in)>;
-def : Pat<(add GPR:$hi, (ToyLo tglobaladdr:$lo)),
-          (ADDI GPR:$hi, tglobaladdr:$lo)>;
 
 def AddrFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantParent]>;
 
