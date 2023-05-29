@@ -1,3 +1,8 @@
+int x = 0;
+
+void bar() { x++; }
+
 void foo() {
-    foo();
+  x++;
+  bar();
 }

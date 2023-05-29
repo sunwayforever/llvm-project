@@ -44,3 +44,12 @@ void ToyFrameLowering::emitEpilogue(MachineFunction &MF,
 }
 
 bool ToyFrameLowering::hasFP(const MachineFunction &MF) const { return false; }
+
+void ToyFrameLowering::determineCalleeSaves(MachineFunction &MF,
+                                            BitVector &SavedRegs,
+                                            RegScavenger *RS) const {
+  TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
+  if (MF.getFrameInfo().hasCalls()) {
+    SavedRegs.set(Toy::RA);
+  }
+}

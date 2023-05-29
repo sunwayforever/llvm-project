@@ -735,7 +735,7 @@ emitPrologue 发生在 schedule 及 RA 之后, 所以它们操作的是 MachineI
 存器
 
 epilogue 与 prologue 对应, 但如果函数不需要返回, 则不需要 epilogue (参考
-ToyInstrInfo.td 中的 `isResult = 1`)
+ToyInstrInfo.td 中的 `isReturn = 1`)
 
 ** toy-26: LowerCall
 
@@ -766,3 +766,13 @@ call 需要 ToyISelLowering::LowerCall 来处理, 它负责按调用约定处理
 #+end_example
 
 能生成 `jalr ra, 0(t0)` , 但有一个问题: 没有针对 ra 做 CSR 的 spill 和 restore
+
+** toy-27: LowerCall cont.
+
+CSR 需要保存的前提是函数不是 leaf function, 通过设置 td 中 CALL 指令 `isCall =
+1` 让 llvm 知道函数 `hasCalls()`
+
+由于 RA 寄存器 并非由 register allocator 分配, 所以需要重写
+determineCalleeSaves, 把 RA 加到 SavedRegs 里
+
+最后需要实现 loadRegFromStackSlot, 以便生成 restore ra 的指令
