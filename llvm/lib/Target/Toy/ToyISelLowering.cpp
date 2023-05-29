@@ -2,6 +2,9 @@
 #include "ToyISelLowering.h"
 #include "TargetDesc/ToyBaseInfo.h"
 #include "TargetDesc/ToyTargetDesc.h"
+#include "ToySubtarget.h"
+#include "llvm/CodeGen/CallingConvLower.h"
+#include "llvm/CodeGen/MachineRegisterInfo.h"
 
 #define DEBUG_TYPE "toy isel lowering"
 
@@ -10,13 +13,46 @@ using namespace llvm;
 ToyTargetLowering::ToyTargetLowering(const TargetMachine &TM,
                                      ToySubtarget const &STI)
     : TargetLowering(TM) {
+  addRegisterClass(MVT::i32, &Toy::GPRRegClass);
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
+  computeRegisterProperties(STI.getRegisterInfo());
+}
+
+#include "ToyGenCallingConv.inc"
+void analyzeFormalArguments(const SmallVectorImpl<ISD::InputArg> &Args,
+                            CCState &CCInfo) {
+  unsigned NumArgs = Args.size();
+
+  for (unsigned I = 0; I != NumArgs; ++I) {
+    MVT ArgVT = Args[I].VT;
+    ISD::ArgFlagsTy ArgFlags = Args[I].Flags;
+    ToyCC(I, ArgVT, ArgVT, CCValAssign::Full, ArgFlags, CCInfo);
+  }
 }
 
 SDValue ToyTargetLowering::LowerFormalArguments(
     SDValue Chain, CallingConv::ID CallConv, bool IsVarArg,
-    SmallVectorImpl<ISD::InputArg> const &Ins, SDLoc const &dl,
+    SmallVectorImpl<ISD::InputArg> const &Ins, SDLoc const &DL,
     SelectionDAG &DAG, SmallVectorImpl<SDValue> &InVals) const {
+  MachineFunction &MF = DAG.getMachineFunction();
+
+  SmallVector<CCValAssign, 16> ArgLocs;
+  CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), ArgLocs,
+                 *DAG.getContext());
+
+  analyzeFormalArguments(Ins, CCInfo);
+  for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
+    CCValAssign &VA = ArgLocs[i];
+    assert(VA.isRegLoc());
+    MVT RegVT = VA.getLocVT();
+    unsigned ArgReg = VA.getLocReg();
+    const TargetRegisterClass *RC = getRegClassFor(RegVT);
+
+    unsigned VReg = MF.getRegInfo().createVirtualRegister(RC);
+    MF.getRegInfo().addLiveIn(ArgReg, VReg);
+    SDValue ArgValue = DAG.getCopyFromReg(Chain, DL, VReg, RegVT);
+    InVals.push_back(ArgValue);
+  }
   return Chain;
 }
 

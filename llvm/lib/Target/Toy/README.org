@@ -776,3 +776,19 @@ CSR 需要保存的前提是函数不是 leaf function, 通过设置 td 中 CALL
 determineCalleeSaves, 把 RA 加到 SavedRegs 里
 
 最后需要实现 loadRegFromStackSlot, 以便生成 restore ra 的指令
+
+** toy-28: LowerFormalArguments
+
+LowerFormalArguments 负责按调用约定从物理寄存器或栈上获得函数的参数,
+ToyCallingConv.td 中的
+
+#+begin_example
+  def ToyCC : CallingConv<[
+      CCIfType<[i32], CCAssignToReg<[A0, A1]>>
+  ]>;
+#+end_example
+
+会生成一个 ToyCC 函数, LowerFormalArguments 调用它获得参数使用的物理寄存器或栈上
+的位置, 然后生成一些 SDNode (例如 getCopyFromReg) 获得这些参数
+
+目前的实现只支持通过寄存器传递最多两个 i32 类型的参数
