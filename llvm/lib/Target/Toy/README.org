@@ -101,3 +101,23 @@
       codegen::getExplicitCodeModel(), OLvl));
   assert(Target && "Could not allocate target machine!");
 #+end_src
+
+** LLVMInitializeToyTarget
+
+实现 LLVMInitializeToyTarget.
+
+RegisterTargetMachine 会设置 TheTarget 的 TargetMachineCtorFn, 使得
+TheTarget->createTargetMachine 返回 ToyTargetMachine 实例.
+
+*** 测试
+
+#+begin_example
+  $> test_toy.sh
+  llc: /home/sunway/source/llvm-toy/llvm/lib/CodeGen/LLVMTargetMachine.cpp:42:
+  void llvm::LLVMTargetMachine::initAsmInfo(): Assertion `MRI && "Unable to create
+  reg info"' failed.
+#+end_example
+
+出错的原因是没有调用 RegisterMCRegInfo, 导致 initAsmInfo 时出错.
+
+
