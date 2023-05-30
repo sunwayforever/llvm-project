@@ -41,6 +41,17 @@ void analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Args,
   }
 }
 
+void analyzeReturn(const SmallVectorImpl<ISD::OutputArg> &Args,
+                   CCState &CCInfo) {
+  unsigned NumArgs = Args.size();
+
+  for (unsigned I = 0; I != NumArgs; ++I) {
+    MVT ArgVT = Args[I].VT;
+    ISD::ArgFlagsTy ArgFlags = Args[I].Flags;
+    ToyCC(I, ArgVT, ArgVT, CCValAssign::Full, ArgFlags, CCInfo);
+  }
+}
+
 SDValue ToyTargetLowering::LowerFormalArguments(
     SDValue Chain, CallingConv::ID CallConv, bool IsVarArg,
     SmallVectorImpl<ISD::InputArg> const &Ins, SDLoc const &DL,
@@ -73,6 +84,17 @@ ToyTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
                                SmallVectorImpl<ISD::OutputArg> const &Outs,
                                SmallVectorImpl<SDValue> const &OutVals,
                                SDLoc const &DL, SelectionDAG &DAG) const {
+  SmallVector<CCValAssign, 2> RVLocs;
+  CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
+                 *DAG.getContext());
+  analyzeReturn(Outs, CCInfo);
+  for (unsigned i = 0, e = RVLocs.size(); i != e; ++i) {
+    CCValAssign &VA = RVLocs[i];
+    assert(VA.isRegLoc());
+    unsigned RVReg = VA.getLocReg();
+    Chain = DAG.getCopyToReg(Chain, DL, RVReg, OutVals[i]);
+  }
+
   SmallVector<SDValue, 4> Ops(1, Chain);
   Ops[0] = Chain;
   return DAG.getNode(ToyISD::Ret, DL, MVT::Other, Ops);
