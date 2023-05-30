@@ -1,6 +1,11 @@
-int x[2];
+int a, b, c, d, e, f;
+
 void foo() {
-  x[0] = 10;
-  x[1] = 10;
-  int y = x[1];
+  int x = 0;
+  a = x > 10;
+  b = x < 10;
+  c = x == 10;
+  d = x != 10;
+  e = (x >= 1);
+  f = (x <= 0);
 };

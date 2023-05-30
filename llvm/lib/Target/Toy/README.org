@@ -817,3 +817,7 @@ LowerCall 最后还需要根据调用约定从物理寄存器或栈上获得函�
 ** toy-33: global address with constant offset
 
 访问全局的 `a[1]` 时会使用带 offset 的 global address
+
+** toy-34: setcc
+
+riscv 只支持 slt, 但 slt, sgt, seq, sne 都可以用 slt 实现
