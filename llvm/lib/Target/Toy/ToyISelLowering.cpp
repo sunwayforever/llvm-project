@@ -176,5 +176,19 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   Ops.push_back(Callee);
   SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
   Chain = DAG.getNode(ToyISD::Call, DL, NodeTys, Ops);
+  // -------------------------------------------
+  {
+    SmallVector<CCValAssign, 2> RVLocs;
+    CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
+                   *DAG.getContext());
+    analyzeReturn(Outs, CCInfo);
+    for (unsigned i = 0, e = RVLocs.size(); i != e; ++i) {
+      CCValAssign &VA = RVLocs[i];
+      assert(VA.isRegLoc());
+      unsigned RVReg = VA.getLocReg();
+      SDValue Val = DAG.getCopyFromReg(Chain, DL, RVReg, RVLocs[i].getLocVT());
+      InVals.push_back(Val);
+    }
+  }
   return Chain;
 }
