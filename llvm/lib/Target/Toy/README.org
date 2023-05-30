@@ -809,3 +809,7 @@ LowerReturn 不仅要生成跳转指令, 还需要按调用用约定把返回值
 ** toy-31: LowerCall Pt. 4
 
 LowerCall 最后还需要根据调用约定从物理寄存器或栈上获得函数的返回值
+
+** toy-32: frameindex with constant offset
+
+访问栈上的 `a[1]` 时会使用带 offset 的 frameindex
