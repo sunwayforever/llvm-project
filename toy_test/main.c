@@ -2,8 +2,8 @@
 #include <assert.h>
 
 extern int x;
-extern void foo();
+extern void foo(int);
 int main(int argc, char *argv[]) {
-  foo();
-  assert(x == 2);
+  foo(0);
+  assert(x == 1);
 }

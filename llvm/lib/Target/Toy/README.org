@@ -737,7 +737,7 @@ emitPrologue 发生在 schedule 及 RA 之后, 所以它们操作的是 MachineI
 epilogue 与 prologue 对应, 但如果函数不需要返回, 则不需要 epilogue (参考
 ToyInstrInfo.td 中的 `isReturn = 1`)
 
-** toy-26: LowerCall
+** toy-26: LowerCall Pt. 1
 
 call 需要 ToyISelLowering::LowerCall 来处理, 它负责按调用约定处理函数调用的参数
 (例如放在特定物理寄存器或放在栈上), 然后生成跳转指令, 并处理函数返回的结果 (例如
@@ -767,7 +767,7 @@ call 需要 ToyISelLowering::LowerCall 来处理, 它负责按调用约定处理
 
 能生成 `jalr ra, 0(t0)` , 但有一个问题: 没有针对 ra 做 CSR 的 spill 和 restore
 
-** toy-27: LowerCall cont.
+** toy-27: LowerCall Pt. 2
 
 CSR 需要保存的前提是函数不是 leaf function, 通过设置 td 中 CALL 指令 `isCall =
 1` 让 llvm 知道函数 `hasCalls()`
@@ -790,5 +790,12 @@ ToyCallingConv.td 中的
 
 会生成一个 ToyCC 函数, LowerFormalArguments 调用它获得参数使用的物理寄存器或栈上
 的位置, 然后生成一些 SDNode (例如 getCopyFromReg) 获得这些参数
+
+目前的实现只支持通过寄存器传递最多两个 i32 类型的参数
+
+** toy-29: LowerCall Pt. 3
+
+LowerCall 时除了生成跳转指令, 还需要按调用约定把参数放在物理寄存器或栈上, 它使用
+了和前面 LowerFormalArguments 类似的代码.
 
 目前的实现只支持通过寄存器传递最多两个 i32 类型的参数
