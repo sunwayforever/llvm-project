@@ -112,6 +112,7 @@ SDValue ToyTargetLowering::lowerGlobalAddress(SDValue Op,
                                               SelectionDAG &DAG) const {
   EVT Ty = Op.getValueType();
   GlobalAddressSDNode *N = cast<GlobalAddressSDNode>(Op);
+  int64_t Offset = N->getOffset();
   SDLoc DL(N);
   SDValue Hi =
       DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_HI);
@@ -120,7 +121,11 @@ SDValue ToyTargetLowering::lowerGlobalAddress(SDValue Op,
   // return DAG.getNode(ISD::ADD, DL, Ty, DAG.getNode(ToyISD::Hi, DL, Ty, Hi),
   //                    DAG.getNode(ToyISD::Lo, DL, Ty, Lo));
   SDValue MNHi = SDValue(DAG.getMachineNode(Toy::LUI, DL, Ty, Hi), 0);
-  return SDValue(DAG.getMachineNode(Toy::ADDI, DL, Ty, MNHi, Lo), 0);
+  SDValue Addr = SDValue(DAG.getMachineNode(Toy::ADDI, DL, Ty, MNHi, Lo), 0);
+  if (Offset != 0) {
+    return DAG.getNode(ISD::ADD, DL, Ty, Addr, DAG.getConstant(Offset, DL, Ty));
+  }
+  return Addr;
 }
 
 const char *ToyTargetLowering::getTargetNodeName(unsigned Opcode) const {

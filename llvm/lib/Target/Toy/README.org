@@ -813,3 +813,7 @@ LowerCall 最后还需要根据调用约定从物理寄存器或栈上获得函�
 ** toy-32: frameindex with constant offset
 
 访问栈上的 `a[1]` 时会使用带 offset 的 frameindex
+
+** toy-33: global address with constant offset
+
+访问全局的 `a[1]` 时会使用带 offset 的 global address
