@@ -1,0 +1,27 @@
+#+TITLE: TODO
+#+AUTHOR: Wei Sun (孙伟)
+#+EMAIL: wei.sun@hexintek.com
+#+DATE: 2023-05-31 Wed 18:27
+#+CATEGORY:
+#+FILETAGS:
+
+* TODO
+
+** u32
+
+** i8/u8
+
+** i16/u16
+
+** f32 
+
+** pointer type
+
+** pass arguments on stack
+
+** struct
+
+** vector
+
+** intrinsic
+

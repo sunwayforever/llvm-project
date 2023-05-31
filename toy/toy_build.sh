@@ -1,9 +1,9 @@
 #!/bin/bash
-if [[ -d build ]]; then
-    ninja -C build llc
+if [[ -d ../build ]]; then
+    ninja -C ../build llc
 else
-    mkdir build
-    pushd build
+    mkdir ../build
+    pushd ../build
     cmake -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_CXX_COMPILER=clang++ \
           -DCMAKE_C_COMPILER=clang \
