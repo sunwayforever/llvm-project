@@ -44,6 +44,9 @@ MCOperand ToyMCInstLower::LowerSymbolOperand(const MachineOperand &MO) const {
   case MachineOperand::MO_GlobalAddress:
     Symbol = AsmPrinter.getSymbol(MO.getGlobal());
     break;
+  case MachineOperand::MO_MachineBasicBlock:
+    Symbol = MO.getMBB()->getSymbol();
+    break;
   default:
     llvm_unreachable("<unknown operand type>");
   }
@@ -64,6 +67,7 @@ MCOperand ToyMCInstLower::LowerOperand(const MachineOperand &MO) const {
   case MachineOperand::MO_Immediate:
     return MCOperand::createImm(MO.getImm());
   case MachineOperand::MO_GlobalAddress:
+  case MachineOperand::MO_MachineBasicBlock:
     return LowerSymbolOperand(MO);
   }
 

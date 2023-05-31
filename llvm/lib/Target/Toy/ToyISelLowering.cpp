@@ -15,6 +15,7 @@ ToyTargetLowering::ToyTargetLowering(const TargetMachine &TM,
     : TargetLowering(TM) {
   addRegisterClass(MVT::i32, &Toy::GPRRegClass);
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
+  setOperationAction(ISD::BR_CC, MVT::i32, Expand);
   computeRegisterProperties(STI.getRegisterInfo());
 }
 

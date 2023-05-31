@@ -6,18 +6,20 @@ using namespace llvm;
 
 void ToyMCExpr::printImpl(raw_ostream &OS, const MCAsmInfo *MAI) const {
   switch (Kind) {
-  default:
-    llvm_unreachable("kind is invalid");
-    break;
   case TEK_HI:
-    OS << "%hi";
+    OS << "%hi(";
     break;
   case TEK_LO:
-    OS << "%lo";
+    OS << "%lo (";
     break;
   }
 
-  OS << '(';
   Expr->print(OS, MAI, true);
-  OS << ')';
+
+  switch (Kind) {
+  case TEK_HI:
+  case TEK_LO:
+    OS << ")";
+    break;
+  }
 }

@@ -821,3 +821,8 @@ LowerCall 最后还需要根据调用约定从物理寄存器或栈上获得函�
 ** toy-34: setcc
 
 riscv 只支持 slt, 但 slt, sgt, seq, sne 都可以用 slt 实现
+
+** toy-35: br_cc
+
+br_cc 是条件跳转. br_cc 先通过 expand 转换成 brcond, 然后再用 blt 等指令匹配
+brcond
