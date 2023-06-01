@@ -28,6 +28,7 @@ class ArithLogicR <string inst, SDNode node>:
       IIAlu>;
 
 def ADD : ArithLogicR<"add", add>;
+def SUB : ArithLogicR<"sub", sub>;
 def MUL : ArithLogicR<"mul", mul>;
 def DIV : ArithLogicR<"div", sdiv>;
 def REM : ArithLogicR<"rem", srem>;
@@ -95,6 +96,8 @@ def CALL : InstI<(outs),(ins calltarget:$rs1), "call\t$rs1", [(ToyCall tglobalad
     let isCall = 1;
     let isTerminator = 1;
 }
+
+def LEA : InstI<(outs GPR:$rd),(ins calltarget:$rs1), "la\t$rd, $rs1", [], IIAlu>;
 
 def SLT : InstR<(outs GPR:$rd),(ins GPR:$rs1, GPR:$rs2),
            "slt\t$rd, $rs1, $rs2", [],
