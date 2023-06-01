@@ -826,3 +826,12 @@ riscv 只支持 slt, 但 slt, sgt, seq, sne 都可以用 slt 实现
 
 br_cc 是条件跳转. br_cc 先通过 expand 转换成 brcond, 然后再用 blt 等指令匹配
 brcond
+
+** toy-36: type promotion
+
+目前的实现里 add 指令只支持 32 位, 为了支持 8/16 位的加法, llvm 的
+DAGTypeLegalizer 会在 load/store 时进行 type promotion, 例如 store 时通过
+truncate 把 i32 变成 i8, 或 load 时通过 sext 把 i8 变成 i32.
+
+这里的 truncate, sext 信息包含在 load/store 中, 后端需要匹配这些 patten 生成
+lb/sb 等指令.

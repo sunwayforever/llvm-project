@@ -15,7 +15,7 @@ void ToyInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
                                        const TargetRegisterInfo *TRI,
                                        Register VReg) const {
   DebugLoc DL;
-  BuildMI(MBB, MI, DL, get(Toy::STOREFI))
+  BuildMI(MBB, MI, DL, get(Toy::STOREWFI))
       .addReg(SrcReg, getKillRegState(isKill))
       .addFrameIndex(FI)
       .addImm(0);
@@ -28,5 +28,5 @@ void ToyInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
                                         const TargetRegisterInfo *TRI,
                                         Register VReg) const {
   DebugLoc DL;
-  BuildMI(MBB, MI, DL, get(Toy::LOADFI), DestReg).addFrameIndex(FI).addImm(0);
+  BuildMI(MBB, MI, DL, get(Toy::LOADWFI), DestReg).addFrameIndex(FI).addImm(0);
 }

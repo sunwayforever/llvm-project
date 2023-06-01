@@ -26,6 +26,9 @@ class InstU<dag outs, dag ins, string asm, list<dag> pattern,
 class InstB<dag outs, dag ins, string asm, list<dag> pattern,
       InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{}
 
+class InstS<dag outs, dag ins, string asm, list<dag> pattern,
+      InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{}
+
 class InstJ<dag outs, dag ins, string asm, list<dag> pattern,
       InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{}
 
