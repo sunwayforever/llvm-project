@@ -34,6 +34,10 @@ def AND : ArithLogicR<"and", and>;
 def OR : ArithLogicR<"or", or>;
 def XOR : ArithLogicR<"xor", xor>;
 
+def SLL : ArithLogicR<"sll", shl>;
+def SRA : ArithLogicR<"sra", sra>;
+def SRL : ArithLogicR<"srl", srl>;
+
 def LUI : InstU<(outs GPR:$rd), (ins imm20:$imm),
           "lui $rd, $imm", [], IIAlu>;
 
@@ -99,24 +103,24 @@ def : Pat<(setne GPR:$lhs, GPR:$rhs), (SLT ZERO, (XOR GPR:$lhs, GPR:$rhs))>;
 // def : Pat<(setge GPR:$rs1, GPR:$rs2), (XORI (SLT GPR:$rs1, GPR:$rs2), 1)>;
 // def : Pat<(setle GPR:$rs1, GPR:$rs2), (XORI (SLT GPR:$rs2, GPR:$rs1), 1)>;
 
-def BLT : InstB<(outs),(ins GPR:$rs1, GPR:$rs2, brtarget:$imm),
-           "blt \t$rs1, $rs2, $imm", [],
-           IIAlu>;
-
-def BEQ : InstB<(outs),(ins GPR:$rs1, GPR:$rs2, brtarget:$imm),
-           "beq \t$rs1, $rs2, $imm", [],
-           IIAlu>;
-
-def BNE : InstB<(outs),(ins GPR:$rs1, GPR:$rs2, brtarget:$imm),
-           "bne \t$rs1, $rs2, $imm", [],
-           IIAlu>;
+class BRANCH<string asm>:InstB<(outs),(ins GPR:$rs1, GPR:$rs2, brtarget:$imm),
+                                     !strconcat(asm, "\t$rs1, $rs2, $imm"),
+                                     [], IIAlu>;
+def BLT:BRANCH<"blt">;
+def BEQ:BRANCH<"beq">;
+def BNE:BRANCH<"bne">;
+def BGE:BRANCH<"bge">;
 
 def : Pat<(brcond (i32 (setlt GPR:$lhs, GPR:$rhs)), bb:$dst), (BLT GPR:$lhs, GPR:$rhs, brtarget:$dst)>;
 
 def : Pat<(brcond (i32 (setgt GPR:$lhs, GPR:$rhs)), bb:$dst), (BLT GPR:$rhs, GPR:$lhs, brtarget:$dst)>;
 
-def : Pat<(brcond (i32 (seteq GPR:$lhs, GPR:$rhs)), bb:$dst), (BEQ GPR:$rhs, GPR:$lhs, brtarget:$dst)>;
+def : Pat<(brcond (i32 (seteq GPR:$lhs, GPR:$rhs)), bb:$dst), (BEQ GPR:$lhs, GPR:$rhs, brtarget:$dst)>;
 
-def : Pat<(brcond (i32 (setne GPR:$lhs, GPR:$rhs)), bb:$dst), (BNE GPR:$rhs, GPR:$lhs, brtarget:$dst)>;
+def : Pat<(brcond (i32 (setne GPR:$lhs, GPR:$rhs)), bb:$dst), (BNE GPR:$lhs, GPR:$rhs, brtarget:$dst)>;
+
+def : Pat<(brcond (i32 (setge GPR:$lhs, GPR:$rhs)), bb:$dst), (BGE GPR:$lhs, GPR:$rhs, brtarget:$dst)>;
+
+def : Pat<(brcond (i32 (setle GPR:$lhs, GPR:$rhs)), bb:$dst), (BGE GPR:$rhs, GPR:$lhs, brtarget:$dst)>;
 
 def : Pat<(br bb:$imm), (J brtarget:$imm)>;
