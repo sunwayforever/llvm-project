@@ -31,9 +31,3 @@ class InstS<dag outs, dag ins, string asm, list<dag> pattern,
 
 class InstJ<dag outs, dag ins, string asm, list<dag> pattern,
       InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{}
-
-class Pseudo<dag outs, dag ins, list<dag> pattern>
-    : ToyInst<outs, ins, "", pattern, IIAlu> {
-  let isPseudo = 1;
-  let isCodeGenOnly = 1;
-}

@@ -53,6 +53,17 @@ void analyzeReturn(const SmallVectorImpl<ISD::OutputArg> &Args,
   }
 }
 
+void analyzeCallResult(const SmallVectorImpl<ISD::InputArg> &Args,
+                       CCState &CCInfo) {
+  unsigned NumArgs = Args.size();
+
+  for (unsigned I = 0; I != NumArgs; ++I) {
+    MVT ArgVT = Args[I].VT;
+    ISD::ArgFlagsTy ArgFlags = Args[I].Flags;
+    ToyCC(I, ArgVT, ArgVT, CCValAssign::Full, ArgFlags, CCInfo);
+  }
+}
+
 SDValue ToyTargetLowering::LowerFormalArguments(
     SDValue Chain, CallingConv::ID CallConv, bool IsVarArg,
     SmallVectorImpl<ISD::InputArg> const &Ins, SDLoc const &DL,
@@ -154,6 +165,7 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   bool IsVarArg = CLI.IsVarArg;
   // NOTE: Outs 是 call 需要传递的参数
   SmallVectorImpl<ISD::OutputArg> &Outs = CLI.Outs;
+  SmallVectorImpl<ISD::InputArg> &Ins = CLI.Ins;
   SmallVectorImpl<SDValue> &OutVals = CLI.OutVals;
 
   SmallVector<CCValAssign, 2> ArgLocs;
@@ -169,14 +181,17 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // -------------------------------------------
   GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
 
-  EVT Ty = getPointerTy(DAG.getDataLayout());
-  SDValue Hi =
-      DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_HI);
-  SDValue Lo =
-      DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_LO);
-  SDValue MNHi = SDValue(DAG.getMachineNode(Toy::LUI, DL, Ty, Hi), 0);
+  // EVT Ty = getPointerTy(DAG.getDataLayout());
+  // SDValue Hi =
+  //     DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_HI);
+  // SDValue Lo =
+  //     DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_LO);
+  // SDValue MNHi = SDValue(DAG.getMachineNode(Toy::LUI, DL, Ty, Hi), 0);
 
-  Callee = SDValue(DAG.getMachineNode(Toy::ADDI, DL, Ty, MNHi, Lo), 0);
+  // Callee = SDValue(DAG.getMachineNode(Toy::ADDI, DL, Ty, MNHi, Lo), 0);
+  Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL,
+                                      getPointerTy(DAG.getDataLayout()), 0,
+                                      ToyII::MO_NO_FLAG);
 
   SmallVector<SDValue, 8> Ops(1, Chain);
   Ops.push_back(Callee);
@@ -187,7 +202,7 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     SmallVector<CCValAssign, 2> RVLocs;
     CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
                    *DAG.getContext());
-    analyzeReturn(Outs, CCInfo);
+    analyzeCallResult(Ins, CCInfo);
     for (unsigned i = 0, e = RVLocs.size(); i != e; ++i) {
       CCValAssign &VA = RVLocs[i];
       assert(VA.isRegLoc());

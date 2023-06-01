@@ -3,6 +3,7 @@ include "ToyInstrFormats.td"
 def imm12 : Operand<i32>, ImmLeaf<i32, [{return isInt<12>(Imm);}]>;
 def imm20 : Operand<i32>, ImmLeaf<i32, [{return isInt<20>(Imm);}]>;
 def brtarget : Operand<OtherVT>;
+def calltarget  : Operand<iPTR>;
 
 def mem : Operand<iPTR> {
   let MIOperandInfo = (ops GPR, imm12);
@@ -70,30 +71,33 @@ defm LOADSB:LOAD<sextloadi8,"lb">;
 def ToyRET : SDNode<"ToyISD::Ret", SDTNone, [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 def JALR : InstI<(outs GPR:$rd),(ins GPR:$rs1, imm12:$imm12),
-           "jalr $rd, ${imm12}(${rs1})", [],
+           "jalr\t$rd, ${imm12}(${rs1})", [],
            IIAlu>;
 
 def J : InstJ<(outs),(ins brtarget:$imm12),
-           "j ${imm12}", [],
+           "j\t${imm12}", [],
            IIAlu> {
-  let isTerminator = 1;
+  // NOTE: isTerminator is required to generator label of the fallthrough bb
+  let isTerminator = 1;         
 }
 
-// def RET : InstI<(outs),(ins), "jalr zero, 0(ra)", [(ToyRET)], IIAlu>;
-let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
-def RET : Pseudo<(outs),(ins), [(ToyRET)]>, PseudoInstExpansion<(JALR ZERO, RA, 0)>;
+def RET : InstI<(outs),(ins), "ret", [(ToyRET)], IIAlu> {
+    let isReturn = 1;
+    let isTerminator=1;
+}
 
 def SDT_Call      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
 
 def ToyCall : SDNode<"ToyISD::Call", SDT_Call, [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
-// def CALL : InstI<(outs),(ins GPR:$rs1), "jalr ra, 0($rs1)", [(ToyCall GPR:$rs1)], IIAlu>;
-def CALL : Pseudo<(outs),(ins GPR:$rs1), [(ToyCall GPR:$rs1)]>, PseudoInstExpansion<(JALR RA, GPR:$rs1, 0)> {
+def CALL : InstI<(outs),(ins calltarget:$rs1), "call\t$rs1", [(ToyCall tglobaladdr:$rs1)], IIAlu> {
+    // NOTE: isCall is required to save RA, check `determineCalleeSaves` for details
     let isCall = 1;
+    let isTerminator = 1;
 }
 
 def SLT : InstR<(outs GPR:$rd),(ins GPR:$rs1, GPR:$rs2),
-           "slt \t$rd, $rs1, $rs2", [],
+           "slt\t$rd, $rs1, $rs2", [],
            IIAlu>;
 
 def : Pat<(setgt GPR:$lhs, GPR:$rhs), (SLT GPR:$rhs, GPR:$lhs)>;

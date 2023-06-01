@@ -2,7 +2,6 @@
 int bsearch(int key, int *base, int n) {
   int lo = 0;
   int hi = n;
-  int mid = (lo + hi) / 2;
   while (lo < hi) {
     int mid = (lo + hi) / 2;
     if (base[mid] == key) {

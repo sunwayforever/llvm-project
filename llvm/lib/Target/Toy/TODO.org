@@ -9,8 +9,6 @@
 
 ** f32 
 
-** pointer type
-
 ** pass arguments on stack
 
 ** struct
