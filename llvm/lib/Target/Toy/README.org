@@ -883,3 +883,72 @@ caller 与 callee 的栈布局为:
       addi    sp, sp, 16
       ret
 #+end_src
+
+** toy-38: glue
+
+由于 call, ret 隐含着使用 a0, a1 等寄存器, 为了避免寄存器分配时对这些寄存器的错
+误的优化, 需要把它们也放在指令中, 同时使用 glue 把这些寄存器 glue 在一起, 防止
+scheduler 错误的优化. 例如:
+
+测试代码为:
+
+#+begin_src C :eval no
+  void bar(int a, int b, int c) {}
+  int foo(int a, int b) {
+    bar(1, 2, 3);
+    return 1;
+  }
+#+end_src
+
+若 LowerReturn 时没有标记 ret 需要使用 a0, 则会生成下面的代码:
+
+#+begin_src asm
+  foo:                                    # @foo
+  # %bb.0:
+          addi    sp, sp, -16
+          sw      ra, 12(sp)
+          sw      s0, 8(sp)
+          sw      a0, 4(sp)
+          sw      a1, 0(sp)
+          addi    s0, zero, 1
+          addi    a1, zero, 2
+          addi    a2, zero, 3
+          add     a0, zero, s0
+          call    bar
+          # NOTE: ret 前对 a0 的赋值消失了
+          lw      s0, 8(sp)
+          lw      ra, 12(sp)
+          addi    sp, sp, 16
+          ret
+#+end_src
+
+若 LowerCall 时没有记录 call 使用了 a0, 则生成下面的代码:
+
+#+begin_src asm 
+  foo:
+      addi    sp, sp, -12
+      sw      ra, 8(sp)
+      sw      a0, 4(sp)
+      sw      a1, 0(sp)
+      # NOTE: a2 的赋值消失了
+      call    bar
+      addi    a0, zero, 1
+      lw      ra, 8(sp)
+      addi    sp, sp, 12
+      ret
+#+end_src
+
+只记录寄存器的使用并不能完全正常工作, 还需要 glue 把 ret 和 a0 glue 在一起, 没有
+glue 时, 可能会生成这样的代码:
+
+#+begin_src asm
+  foo:
+      # ...
+      addi    a0, zero, 1
+      lw      ra, 8(sp)
+      addi    sp, sp, 12
+      # NOTE: call 应该在 addi 之前, 但 ret 和 a0 间没有 glue 可能导致这种错误的结
+      # 果
+      call    bar
+      ret
+#+end_src

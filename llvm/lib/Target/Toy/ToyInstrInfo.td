@@ -89,12 +89,11 @@ def RET : InstI<(outs),(ins), "ret", [(ToyRET)], IIAlu> {
 
 def SDT_Call      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
 
-def ToyCall : SDNode<"ToyISD::Call", SDT_Call, [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+def ToyCall : SDNode<"ToyISD::Call", SDT_Call, [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue, SDNPVariadic]>;
 
 def CALL : InstI<(outs),(ins calltarget:$rs1), "call\t$rs1", [(ToyCall tglobaladdr:$rs1)], IIAlu> {
     // NOTE: isCall is required to save RA, check `determineCalleeSaves` for details
     let isCall = 1;
-    let isTerminator = 1;
 }
 
 def LEA : InstI<(outs GPR:$rd),(ins calltarget:$rs1), "la\t$rd, $rs1", [], IIAlu>;

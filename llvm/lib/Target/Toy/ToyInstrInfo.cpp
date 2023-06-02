@@ -30,3 +30,15 @@ void ToyInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
   DebugLoc DL;
   BuildMI(MBB, MI, DL, get(Toy::LOADWFI), DestReg).addFrameIndex(FI).addImm(0);
 }
+
+void ToyInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
+                               MachineBasicBlock::iterator I,
+                               const DebugLoc &DL, MCRegister DestReg,
+                               MCRegister SrcReg, bool KillSrc) const {
+
+  MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(Toy::ADD));
+
+  MIB.addReg(DestReg, RegState::Define);
+  MIB.addReg(Toy::ZERO);
+  MIB.addReg(SrcReg, getKillRegState(KillSrc));
+}

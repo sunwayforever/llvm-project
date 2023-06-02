@@ -1,8 +1,9 @@
 all:build
 
+CLANG ?= clang
 DEBUG ?=
 
-EXECUTABLES = clang clang++ lld ninja cmake riscv32-unknown-linux-gnu-gcc qemu-riscv32
+EXECUTABLES = ${CLANG} clang++ lld ninja cmake riscv32-unknown-linux-gnu-gcc qemu-riscv32
 K := $(foreach exec,$(EXECUTABLES), $(if $(shell command -v $(exec)	\
         2>/dev/null),some string,$(error "$(exec) not found")))
 
@@ -20,7 +21,7 @@ RUN_APP := $(patsubst %.elf, run_%,${RUN_ELF})
 ${BUILD_ASM}:llvm
 
 %.bc:%.c
-	clang $< -c -fno-stack-protector -emit-llvm -O0 -o $@ && llvm-dis $@
+	${CLANG} $< -c -fno-stack-protector -emit-llvm -O0 -o $@ && llvm-dis $@
 
 %.s:%.bc
 	../build/bin/llc $< -march=toy -o $@ ${DEBUG}

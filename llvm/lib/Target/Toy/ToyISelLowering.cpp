@@ -5,6 +5,7 @@
 #include "llvm/CodeGen/CallingConvLower.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
+#include <deque>
 
 #define DEBUG_TYPE "toy isel lowering"
 
@@ -12,7 +13,7 @@ using namespace llvm;
 
 ToyTargetLowering::ToyTargetLowering(const TargetMachine &TM,
                                      ToySubtarget const &STI)
-    : TargetLowering(TM) {
+    : TargetLowering(TM), Subtarget(STI) {
   addRegisterClass(MVT::i32, &Toy::GPRRegClass);
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
   setOperationAction(ISD::BR_CC, MVT::i32, Expand);
@@ -112,15 +113,22 @@ ToyTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
   CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
                  *DAG.getContext());
   analyzeReturn(Outs, CCInfo);
+
+  SDValue Glue;
+  SmallVector<SDValue, 4> Ops(1, Chain);
   for (unsigned i = 0, e = RVLocs.size(); i != e; ++i) {
     CCValAssign &VA = RVLocs[i];
     assert(VA.isRegLoc());
     unsigned RVReg = VA.getLocReg();
-    Chain = DAG.getCopyToReg(Chain, DL, RVReg, OutVals[i]);
+    Chain = DAG.getCopyToReg(Chain, DL, RVReg, OutVals[i], Glue);
+    Glue = Chain.getValue(1);
+    Ops.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
   }
 
-  SmallVector<SDValue, 4> Ops(1, Chain);
   Ops[0] = Chain;
+  if (Glue.getNode()) {
+    Ops.push_back(Glue);
+  }
   return DAG.getNode(ToyISD::Ret, DL, MVT::Other, Ops);
 }
 
@@ -184,11 +192,15 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), ArgLocs,
                  *DAG.getContext());
   analyzeCallOperands(Outs, CCInfo);
+
+  std::deque<std::pair<unsigned, SDValue>> RegsToPass;
+
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
     CCValAssign &VA = ArgLocs[i];
     if (VA.isRegLoc()) {
-      unsigned ArgReg = VA.getLocReg();
-      Chain = DAG.getCopyToReg(Chain, DL, ArgReg, OutVals[i]);
+      RegsToPass.push_back(std::make_pair(VA.getLocReg(), OutVals[i]));
+      // unsigned ArgReg = VA.getLocReg();
+      // Chain = DAG.getCopyToReg(Chain, DL, ArgReg, OutVals[i]);
     } else if (VA.isMemLoc()) {
       SDValue StackPtr = DAG.getCopyFromReg(Chain, DL, Toy::SP,
                                             getPointerTy(DAG.getDataLayout()));
@@ -207,10 +219,29 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   SmallVector<SDValue, 8> Ops(1, Chain);
   Ops.push_back(Callee);
+
+  SDValue Glue;
+  for (unsigned i = 0, e = RegsToPass.size(); i != e; ++i) {
+    Chain = CLI.DAG.getCopyToReg(Chain, CLI.DL, RegsToPass[i].first,
+                                 RegsToPass[i].second, Glue);
+    Glue = Chain.getValue(1);
+    Ops.push_back(CLI.DAG.getRegister(RegsToPass[i].first,
+                                      RegsToPass[i].second.getValueType()));
+  }
+
+  const TargetRegisterInfo *TRI = Subtarget.getRegisterInfo();
+  const uint32_t *Mask =
+      TRI->getCallPreservedMask(CLI.DAG.getMachineFunction(), CLI.CallConv);
+  Ops.push_back(CLI.DAG.getRegisterMask(Mask));
+  if (Glue.getNode()) {
+    Ops.push_back(Glue);
+  }
   SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
   Chain = DAG.getNode(ToyISD::Call, DL, NodeTys, Ops);
+
   // -------------------------------------------
   {
+    SDValue Glue = Chain.getValue(1);
     SmallVector<CCValAssign, 2> RVLocs;
     CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
                    *DAG.getContext());
@@ -219,7 +250,10 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       CCValAssign &VA = RVLocs[i];
       assert(VA.isRegLoc());
       unsigned RVReg = VA.getLocReg();
-      SDValue Val = DAG.getCopyFromReg(Chain, DL, RVReg, RVLocs[i].getLocVT());
+      SDValue Val =
+          DAG.getCopyFromReg(Chain, DL, RVReg, RVLocs[i].getLocVT(), Glue);
+      Chain = Val.getValue(1);
+      Glue = Val.getValue(2);
       InVals.push_back(Val);
     }
   }

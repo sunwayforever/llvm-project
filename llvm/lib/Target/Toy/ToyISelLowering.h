@@ -21,6 +21,7 @@ class ToySubtarget;
 class ToyTargetLowering : public TargetLowering {
 private:
   SDValue lowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+  const ToySubtarget &Subtarget;
 
 public:
   ToyTargetLowering(const TargetMachine &TM, ToySubtarget const &STI);

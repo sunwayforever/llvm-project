@@ -13,9 +13,8 @@ class ToyRegisterInfo : public ToyGenRegisterInfo {
 public:
   ToyRegisterInfo(ToySubtarget const &ST, unsigned HwMode);
   MCPhysReg const *getCalleeSavedRegs(MachineFunction const *MF) const override;
-  // uint32_t const *getCallPreservedMask(MachineFunction const
-  // &MF,
-  //                                      CallingConv::ID) const override;
+  uint32_t const *getCallPreservedMask(MachineFunction const &MF,
+                                       CallingConv::ID) const override;
   BitVector getReservedRegs(MachineFunction const &MF) const override;
   bool eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
                            unsigned FIOperandNum,

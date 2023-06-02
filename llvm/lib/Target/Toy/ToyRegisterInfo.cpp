@@ -42,6 +42,11 @@ ToyRegisterInfo::getCalleeSavedRegs(MachineFunction const *MF) const {
   return CSR_SaveList;
 }
 
+const uint32_t *ToyRegisterInfo::getCallPreservedMask(const MachineFunction &MF,
+                                                      CallingConv::ID) const {
+  return CSR_RegMask;
+}
+
 BitVector ToyRegisterInfo::getReservedRegs(MachineFunction const &MF) const {
   constexpr uint16_t ReservedCPURegs[] = {Toy::ZERO, Toy::RA, Toy::SP};
   BitVector Reserved(getNumRegs());
