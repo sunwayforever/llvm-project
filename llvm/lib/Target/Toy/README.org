@@ -477,7 +477,7 @@ eliminateFrameIndex 需要根据 frameindex 的值以及 stack_size 计算出正
   ...
   #9 0x0000000000c410f6 llvm::AsmPrinter::emitFunctionBody()
   /home/sunway/source/llvm-toy/llvm/lib/CodeGen/AsmPrinter/AsmPrinter.cpp:1725:13
- 
+
   #10 0x0000000000c10671
   llvm::AsmPrinter::runOnMachineFunction(llvm::MachineFunction&)
   /home/sunway/source/llvm-toy/llvm/include/llvm/CodeGen/AsmPrinter.h:4
@@ -835,3 +835,51 @@ truncate 把 i32 变成 i8, 或 load 时通过 sext 把 i8 变成 i32.
 
 这里的 truncate, sext 信息包含在 load/store 中, 后端需要匹配这些 patten 生成
 lb/sb 等指令.
+
+** toy-37: LowerCall Pt. 5
+
+LowerCall 需要按约定把多余的参数放在栈上, LowerFormalArguments 需要从栈上取这些
+参数
+
+caller 与 callee 的栈布局为:
+
+#+begin_example
+  caller:                  callee:
+
+  local_1                  local_1
+  local_2                  local_2
+  ...                      ...
+  arg1
+  arg2 <-- [sp]
+#+end_example
+
+即 caller 把参数放在栈顶, callee 直接从 caller 的栈帧取参数, 对应的代码为:
+
+#+begin_src asm :eval no
+  bar:
+      addi    sp, sp, -12                 # NOTE: bar 的 stack size 为 12, 但它访问了 sp+12 和 sp+16, 即 foo 的栈帧
+      lw      t0, 16(sp)
+      lw      t0, 12(sp)
+      sw      a0, 8(sp)
+      ...
+  foo:                                    # @foo
+      addi    sp, sp, -16
+      sw      ra, 12(sp)
+      addi    a0, zero, 1
+      addi    a1, zero, 2
+      addi    a2, zero, 3
+      addi    t0, zero, 4
+      sw      t0, 0(sp)           # NOTE: foo 的 stack size 原来为 8, 由于参数会使
+                                  # 用 sp+0, sp+4, ..., 导致需要在
+                                  # emitPrologue/emitEpilogue 时调整 stack
+                                  # size. 另外为了避免与原有 local 变量冲突, 会在
+                                  # eliminateFrameIndex 加上一个 offset
+      addi    t0, zero, 5
+      sw      t0, 4(sp)
+      call    bar
+      sw      a0, 8(sp)
+      lw      a0, 8(sp)
+      lw      ra, 12(sp)
+      addi    sp, sp, 16
+      ret
+#+end_src

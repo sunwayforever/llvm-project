@@ -9,11 +9,8 @@
 
 ** f32 
 
-** pass arguments on stack
-
-** struct
+** return struct
 
 ** vector
 
 ** intrinsic
-

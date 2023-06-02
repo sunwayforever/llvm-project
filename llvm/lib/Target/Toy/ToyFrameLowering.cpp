@@ -18,7 +18,7 @@ void ToyFrameLowering::emitPrologue(MachineFunction &MF,
   const ToyInstrInfo &TII =
       *static_cast<const ToyInstrInfo *>(STI.getInstrInfo());
   DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
-  uint64_t StackSize = MFI.getStackSize();
+  uint64_t StackSize = MFI.getStackSize() + MFI.getOffsetAdjustment();
 
   if (StackSize == 0 && !MFI.adjustsStack())
     return;
@@ -34,7 +34,7 @@ void ToyFrameLowering::emitEpilogue(MachineFunction &MF,
   const ToyInstrInfo &TII =
       *static_cast<const ToyInstrInfo *>(STI.getInstrInfo());
   DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
-  uint64_t StackSize = MFI.getStackSize();
+  uint64_t StackSize = MFI.getStackSize() + MFI.getOffsetAdjustment();
 
   if (StackSize == 0 && !MFI.adjustsStack())
     return;

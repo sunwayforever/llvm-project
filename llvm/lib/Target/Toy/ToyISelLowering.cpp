@@ -3,6 +3,7 @@
 #include "TargetDesc/ToyTargetDesc.h"
 #include "ToySubtarget.h"
 #include "llvm/CodeGen/CallingConvLower.h"
+#include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 
 #define DEBUG_TYPE "toy isel lowering"
@@ -68,6 +69,7 @@ SDValue ToyTargetLowering::LowerFormalArguments(
     SmallVectorImpl<ISD::InputArg> const &Ins, SDLoc const &DL,
     SelectionDAG &DAG, SmallVectorImpl<SDValue> &InVals) const {
   MachineFunction &MF = DAG.getMachineFunction();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
 
   SmallVector<CCValAssign, 16> ArgLocs;
   CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), ArgLocs,
@@ -76,15 +78,26 @@ SDValue ToyTargetLowering::LowerFormalArguments(
   analyzeFormalArguments(Ins, CCInfo);
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
     CCValAssign &VA = ArgLocs[i];
-    assert(VA.isRegLoc());
-    MVT RegVT = VA.getLocVT();
-    unsigned ArgReg = VA.getLocReg();
-    const TargetRegisterClass *RC = getRegClassFor(RegVT);
+    EVT ValVT = VA.getValVT();
+    if (VA.isRegLoc()) {
+      MVT RegVT = VA.getLocVT();
+      unsigned ArgReg = VA.getLocReg();
+      const TargetRegisterClass *RC = getRegClassFor(RegVT);
 
-    unsigned VReg = MF.getRegInfo().createVirtualRegister(RC);
-    MF.getRegInfo().addLiveIn(ArgReg, VReg);
-    SDValue ArgValue = DAG.getCopyFromReg(Chain, DL, VReg, RegVT);
-    InVals.push_back(ArgValue);
+      unsigned VReg = MF.getRegInfo().createVirtualRegister(RC);
+      MF.getRegInfo().addLiveIn(ArgReg, VReg);
+      SDValue ArgValue = DAG.getCopyFromReg(Chain, DL, VReg, RegVT);
+      InVals.push_back(ArgValue);
+    } else if (VA.isMemLoc()) {
+      MVT LocVT = VA.getLocVT();
+      int FI = MFI.CreateFixedObject(ValVT.getSizeInBits() / 8,
+                                     VA.getLocMemOffset(), true);
+      SDValue FIN = DAG.getFrameIndex(FI, getPointerTy(DAG.getDataLayout()));
+      SDValue Load = DAG.getLoad(
+          LocVT, DL, Chain, FIN,
+          MachinePointerInfo::getFixedStack(DAG.getMachineFunction(), FI));
+      InVals.push_back(Load);
+    }
   }
   return Chain;
 }
@@ -150,6 +163,7 @@ const char *ToyTargetLowering::getTargetNodeName(unsigned Opcode) const {
   }
 }
 
+int max_offset = 0;
 SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                      SmallVectorImpl<SDValue> &InVals) const {
   SelectionDAG &DAG = CLI.DAG;
@@ -163,15 +177,27 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   SmallVectorImpl<ISD::InputArg> &Ins = CLI.Ins;
   SmallVectorImpl<SDValue> &OutVals = CLI.OutVals;
 
+  MachineFunction &MF = DAG.getMachineFunction();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
+
   SmallVector<CCValAssign, 2> ArgLocs;
   CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), ArgLocs,
                  *DAG.getContext());
   analyzeCallOperands(Outs, CCInfo);
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
     CCValAssign &VA = ArgLocs[i];
-    assert(VA.isRegLoc());
-    unsigned ArgReg = VA.getLocReg();
-    Chain = DAG.getCopyToReg(Chain, DL, ArgReg, OutVals[i]);
+    if (VA.isRegLoc()) {
+      unsigned ArgReg = VA.getLocReg();
+      Chain = DAG.getCopyToReg(Chain, DL, ArgReg, OutVals[i]);
+    } else if (VA.isMemLoc()) {
+      SDValue StackPtr = DAG.getCopyFromReg(Chain, DL, Toy::SP,
+                                            getPointerTy(DAG.getDataLayout()));
+      SDValue PtrOff =
+          DAG.getNode(ISD::ADD, DL, getPointerTy(DAG.getDataLayout()), StackPtr,
+                      DAG.getIntPtrConstant(VA.getLocMemOffset(), DL));
+      Chain = DAG.getStore(Chain, DL, OutVals[i], PtrOff, MachinePointerInfo());
+      MFI.setOffsetAdjustment(VA.getLocMemOffset() + 4);
+    }
   }
   // -------------------------------------------
   GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
