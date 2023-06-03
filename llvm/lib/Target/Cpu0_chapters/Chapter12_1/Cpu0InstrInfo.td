@@ -952,7 +952,7 @@ def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
 //@def LEA_ADDiu }
 }
 
-def GCD : IntrinArithLogicR<0x60, "gcd", int_cpu0_gcd, IIAlu, CPURegs, 1>;
+// def GCD : IntrinArithLogicR<0x60, "gcd", int_cpu0_gcd, IIAlu, CPURegs, 1>;
 
 let Predicates = [Ch3_5] in {
 //===----------------------------------------------------------------------===//
