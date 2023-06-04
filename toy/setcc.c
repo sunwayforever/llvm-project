@@ -1,7 +1,18 @@
-// 2023-05-31 18:19
+// 2023-05-31 18:18
+int a, b, c, d, e, f;
+
+void foo() {
+  int x = 0;
+  a = x > 10;
+  b = x < 10;
+  c = x == 10;
+  d = x != 10;
+  e = (x >= 1);
+  f = (x <= 0);
+}
+
 #include <assert.h>
-extern int a, b, c, d, e, f;
-extern void foo();
+
 int main(int argc, char *argv[]) {
   foo();
   assert(a == 0);

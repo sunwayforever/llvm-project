@@ -25,3 +25,16 @@ void qsort(int *data, int lo, int hi) {
   qsort(data, lo, pivot);
   qsort(data, pivot + 1, hi);
 }
+
+#include <assert.h>
+#include <stdio.h>
+
+int data[] = {4, 1, 2, 3, 1, 2, 1, 2};
+
+int main(int argc, char *argv[]) {
+  int N = sizeof(data) / sizeof(int);
+  qsort(data, 0, N);
+  for (int i = 1; i < N; i++) {
+    assert(data[i] >= data[i - 1]);
+  }
+}

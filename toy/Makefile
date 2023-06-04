@@ -7,18 +7,17 @@ EXECUTABLES = ${CLANG} clang++ lld ninja cmake riscv32-unknown-linux-gnu-gcc qem
 K := $(foreach exec,$(EXECUTABLES), $(if $(shell command -v $(exec)	\
         2>/dev/null),some string,$(error "$(exec) not found")))
 
-BUILD_SRC := $(shell find ./ -name "build_*.c" -printf '%P\n')
-BUILD_BC := $(patsubst %.c,%.bc,${BUILD_SRC})
-BUILD_LL := $(patsubst %.c,%.ll,${BUILD_SRC})
-BUILD_ASM := $(patsubst %.c,%.s,${BUILD_SRC})
+TEST_SRC := $(shell find ./ -name "*.c" -printf '%P\n')
+TEST_BC := $(patsubst %.c,%.bc,${TEST_SRC})
+TEST_LL := $(patsubst %.c,%.ll,${TEST_SRC})
+TEST_ASM := $(patsubst %.c,%.s,${TEST_SRC})
 
-CHECK_ASM := $(patsubst build_%.c, check_%,${BUILD_SRC})
+CHECK_ASM := $(patsubst %.c, check_%,${TEST_SRC})
 
-RUN_SRC := $(shell find ./ -name "run_*.c" -printf '%P\n')
-RUN_ELF := $(patsubst run_%.c,%.elf,${RUN_SRC})
+RUN_ELF := $(patsubst %.c,%.elf,${TEST_SRC})
 RUN_APP := $(patsubst %.elf, run_%,${RUN_ELF})
 
-${BUILD_ASM}:llvm
+${TEST_ASM}:llvm
 
 %.bc:%.c
 	${CLANG} $< -c -fno-stack-protector -emit-llvm -O0 -o $@ && llvm-dis $@
@@ -26,10 +25,10 @@ ${BUILD_ASM}:llvm
 %.s:%.bc
 	../build/bin/llc $< -march=toy -o $@ ${DEBUG}
 
-%.elf:build_%.s run_%.c
+%.elf:%.s
 	riscv32-unknown-linux-gnu-gcc $^ -O0 -o $@ -static
 
-${CHECK_ASM}:check_%:build_%.s
+${CHECK_ASM}:check_%:%.s
 	cat $<
 
 ${RUN_APP}:run_%:%.elf
@@ -37,11 +36,11 @@ ${RUN_APP}:run_%:%.elf
 
 ${BUILD_ASM}:FORCE
 
-build:${BUILD_ASM}
+build:${TEST_ASM}
 run:${RUN_APP}
 
 clean:
-	rm -f ${BUILD_ASM} ${BUILD_BC} ${BUILD_LL} ${RUN_ELF}
+	rm -f ${TEST_ASM} ${TEST_BC} ${TEST_LL} ${RUN_ELF}
 
 .PRECIOUS: %.bc
 
