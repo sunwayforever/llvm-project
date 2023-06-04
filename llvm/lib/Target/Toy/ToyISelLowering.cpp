@@ -212,10 +212,14 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     }
   }
   // -------------------------------------------
-  GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
-
-  Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL,
-                                      getPointerTy(DAG.getDataLayout()), 0);
+  if (GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee)) {
+    Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL,
+                                        getPointerTy(DAG.getDataLayout()), 0);
+  } else if (ExternalSymbolSDNode *S = dyn_cast<ExternalSymbolSDNode>(Callee)) {
+    const char *Sym = S->getSymbol();
+    Callee =
+        DAG.getTargetExternalSymbol(Sym, getPointerTy(DAG.getDataLayout()));
+  }
 
   SmallVector<SDValue, 8> Ops(1, Chain);
   Ops.push_back(Callee);

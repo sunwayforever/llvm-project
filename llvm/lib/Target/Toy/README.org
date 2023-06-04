@@ -952,3 +952,8 @@ glue 时, 可能会生成这样的代码:
       call    bar
       ret
 #+end_src
+
+** toy-39: soft float
+
+toy 当前不支持 hard float, 导致 legalize 时会通过 libcall 的形式调用到 libgcc 中
+的函数

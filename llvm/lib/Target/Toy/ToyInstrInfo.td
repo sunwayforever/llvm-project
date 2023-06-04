@@ -2,6 +2,8 @@ include "ToyInstrFormats.td"
 
 def imm12 : Operand<i32>, ImmLeaf<i32, [{return isInt<12>(Imm);}]>;
 def imm20 : Operand<i32>, ImmLeaf<i32, [{return isInt<20>(Imm);}]>;
+def imm32 : Operand<i32>, ImmLeaf<i32, [{return isInt<32>(Imm);}]>;
+
 def brtarget : Operand<OtherVT>;
 def calltarget  : Operand<iPTR>;
 
@@ -91,10 +93,13 @@ def SDT_Call      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
 
 def ToyCall : SDNode<"ToyISD::Call", SDT_Call, [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue, SDNPVariadic]>;
 
-def CALL : InstI<(outs),(ins calltarget:$rs1), "call\t$rs1", [(ToyCall tglobaladdr:$rs1)], IIAlu> {
+def CALL : InstI<(outs),(ins calltarget:$rs1), "call\t$rs1", [], IIAlu> {
     // NOTE: isCall is required to save RA, check `determineCalleeSaves` for details
     let isCall = 1;
 }
+
+def : Pat<(ToyCall tglobaladdr:$rs1),(CALL calltarget:$rs1)>;
+def : Pat<(ToyCall texternalsym:$rs1),(CALL calltarget:$rs1)>;
 
 def LEA : InstI<(outs GPR:$rd),(ins calltarget:$rs1), "la\t$rd, $rs1", [], IIAlu>;
 
@@ -130,3 +135,10 @@ def : Pat<(brcond (i32 (setge GPR:$lhs, GPR:$rhs)), bb:$dst), (BGE GPR:$lhs, GPR
 def : Pat<(brcond (i32 (setle GPR:$lhs, GPR:$rhs)), bb:$dst), (BGE GPR:$rhs, GPR:$lhs, brtarget:$dst)>;
 
 def : Pat<(br bb:$imm), (J brtarget:$imm)>;
+
+def LI : InstI<(outs GPR:$rd),(ins imm32:$rs1), "li\t$rd, $rs1", [], IIAlu>;
+
+def : Pat<(i32 imm32:$in),
+          (LI imm32:$in)>;
+
+

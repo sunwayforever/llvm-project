@@ -7,10 +7,13 @@
 
 * TODO
 
-** f32 
-
-** return struct
-
-** vector
-
-** intrinsic
+1. 硬浮点指令
+2. 函数返回结构体
+3. 加入调试信息
+4. 直接生成 object 而非汇编
+5. objdump
+6. instrinsic
+7. 向量
+8. 其它 RISC-V 扩展
+9. 通过 [[https://github.com/llvm/llvm-test-suite/][llvm-test-suite]] 测试 
+10. 优化
