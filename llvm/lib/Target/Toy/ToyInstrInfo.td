@@ -12,6 +12,11 @@ def mem : Operand<iPTR> {
   let PrintMethod = "printMemOperand";
 }
 
+def mem_stack : Operand<iPTR> {
+  let MIOperandInfo = (ops GPR, imm12);
+  let PrintMethod = "printMemStackOperand";
+}
+
 class ArithLogicI <string inst, SDNode node>:
       InstI<(outs GPR:$rd), (ins GPR:$rs1, imm12:$imm),
       !strconcat(inst, "\t$rd, $rs1, $imm"),
@@ -68,8 +73,10 @@ multiclass LOAD<PatFrag op, string asm> {
 defm LOADW:LOAD<load,"lw">;
 defm LOADH:LOAD<extloadi16,"lh">;
 defm LOADSH:LOAD<sextloadi16,"lh">;
+defm LOADZH:LOAD<zextloadi16,"lh">;
 defm LOADB:LOAD<extloadi8,"lb">;
 defm LOADSB:LOAD<sextloadi8,"lb">;
+defm LOADZB:LOAD<zextloadi8,"lb">;
 
 def ToyRET : SDNode<"ToyISD::Ret", SDTNone, [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
@@ -141,4 +148,5 @@ def LI : InstI<(outs GPR:$rd),(ins imm32:$rs1), "li\t$rd, $rs1", [], IIAlu>;
 def : Pat<(i32 imm32:$in),
           (LI imm32:$in)>;
 
+def LEA_STACK : InstI<(outs GPR:$rd),(ins mem_stack:$mem), "addi \t$rd, $mem", [(set GPR:$rd, AddrFI:$mem)], IIAlu>;
 

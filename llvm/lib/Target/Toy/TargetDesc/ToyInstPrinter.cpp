@@ -44,3 +44,10 @@ void ToyInstPrinter::printMemOperand(const MCInst *MI, int opNum,
   printOperand(MI, opNum, O);
   O << ")";
 }
+
+void ToyInstPrinter::printMemStackOperand(const MCInst *MI, int opNum,
+                                     raw_ostream &O) {
+  printOperand(MI, opNum, O);
+  O << ",";
+  printOperand(MI, opNum + 1, O);
+}

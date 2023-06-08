@@ -17,6 +17,7 @@ public:
                  MCSubtargetInfo const &STI, raw_ostream &O) override;
   void printRegName(raw_ostream &OS, MCRegister reg) const override;
   void printMemOperand(const MCInst *MI, int opNum, raw_ostream &O);
+  void printMemStackOperand(const MCInst *MI, int opNum, raw_ostream &O);
   // NOTE: ToyGenAsmWriter.inc 需要调这两个函数
   void printOperand(MCInst const *MI, unsigned OpNum, raw_ostream &O);
   void printOperand(MCInst const *MI, uint64_t _Address, unsigned OpNum,

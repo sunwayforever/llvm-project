@@ -957,3 +957,16 @@ glue 时, 可能会生成这样的代码:
 
 toy 当前不支持 hard float, 导致 legalize 时会通过 libcall 的形式调用到 libgcc 中
 的函数
+
+** toy-40: return struct
+
+返回结构体时有两种做法:
+
+1. 当结构体较小时使用多个寄存器返回
+   
+2. 当结构体较大时会传入一个隐式的指向结构体的指针, 即 named return value 优化
+
+clang 在生成 llir 时就会根据传入的 target 信息决定用哪种方法.
+
+当使用第二种方法时, caller 需要实现 `set rd, frameindex` 这个 patten, 用来传递结
+构体指针 (而不是之前实现的 `set rd, (load frameindex)`
