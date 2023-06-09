@@ -15,8 +15,11 @@ ToyTargetLowering::ToyTargetLowering(const TargetMachine &TM,
                                      ToySubtarget const &STI)
     : TargetLowering(TM), Subtarget(STI) {
   addRegisterClass(MVT::i32, &Toy::GPRRegClass);
+  addRegisterClass(MVT::f32, &Toy::FPRRegClass);
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
+  setOperationAction(ISD::ConstantPool, MVT::i32, Custom);
   setOperationAction(ISD::BR_CC, MVT::i32, Expand);
+  setOperationAction(ISD::BR_CC, MVT::f32, Expand);
   computeRegisterProperties(STI.getRegisterInfo());
 }
 
@@ -136,6 +139,8 @@ SDValue ToyTargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
   switch (Op.getOpcode()) {
   case ISD::GlobalAddress:
     return lowerGlobalAddress(Op, DAG);
+  case ISD::ConstantPool:
+    return lowerConstantPool(Op, DAG);
   }
   return SDValue();
 }
@@ -153,6 +158,21 @@ SDValue ToyTargetLowering::lowerGlobalAddress(SDValue Op,
   if (Offset != 0) {
     return DAG.getNode(ISD::ADD, DL, Ty, Addr, DAG.getConstant(Offset, DL, Ty));
   }
+  return Addr;
+}
+
+SDValue ToyTargetLowering::lowerConstantPool(SDValue Op,
+                                             SelectionDAG &DAG) const {
+  EVT Ty = Op.getValueType();
+  ConstantPoolSDNode *N = cast<ConstantPoolSDNode>(Op);
+  SDLoc DL(N);
+  SDValue Addr =
+      SDValue(DAG.getMachineNode(Toy::LEA, DL, Ty,
+                                 DAG.getTargetConstantPool(N->getConstVal(), Ty,
+                                                           N->getAlign(),
+                                                           N->getOffset(), 0)),
+              0);
+
   return Addr;
 }
 

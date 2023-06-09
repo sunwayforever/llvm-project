@@ -924,7 +924,7 @@ scheduler 错误的优化. 例如:
 
 若 LowerCall 时没有记录 call 使用了 a0, 则生成下面的代码:
 
-#+begin_src asm 
+#+begin_src asm
   foo:
       addi    sp, sp, -12
       sw      ra, 8(sp)
@@ -963,10 +963,26 @@ toy 当前不支持 hard float, 导致 legalize 时会通过 libcall 的形式�
 返回结构体时有两种做法:
 
 1. 当结构体较小时使用多个寄存器返回
-   
+
 2. 当结构体较大时会传入一个隐式的指向结构体的指针, 即 named return value 优化
 
 clang 在生成 llir 时就会根据传入的 target 信息决定用哪种方法.
 
 当使用第二种方法时, caller 需要实现 `set rd, frameindex` 这个 patten, 用来传递结
 构体指针 (而不是之前实现的 `set rd, (load frameindex)`
+
+** toy-41: hard float Pt. 1
+
+支持硬浮点需要:
+
+1. 通过 `addRegisterClass(MVT::f32, &Toy::FPRRegClass)` 告诉 llvm 在 legalize
+   type (LegalizeTypes.cpp) 时不要使用软浮点
+
+2. 添加浮点寄存器
+
+3. 在 isel lowering 时处理 constant pool, 因为浮点数常量是使用的 constant pool,
+   而不是像整数常量那样直接 encode 在指令中
+
+4. 添加指令及其 pattern, 当前的 `float.c` 中需要实现 fadd, load, store, brcond
+   及 setune. 由于 RISC-V 缺少 f32 br_cc (blt, beq, ...) 指令, 所以 f32 br_cc 会
+   使用 f32 setcc 和 i32 br_cc 实现

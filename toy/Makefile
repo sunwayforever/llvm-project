@@ -46,7 +46,7 @@ ${TEST_ASM}:llvm
 	../build/bin/llc $< -march=toy -o $@ ${DEBUG}
 
 %.elf:%.s
-	${GCC} -march=rv32g -mabi=ilp32 $^ -O0 -o $@ -static
+	${GCC} -march=rv32g -mabi=ilp32d $^ -O0 -o $@ -static
 
 ${CHECK_ASM}:check_%:%.s
 	cat $<

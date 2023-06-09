@@ -56,27 +56,31 @@ def : Pat<(i32 imm12:$in),
           (ADDI ZERO, imm12:$in)>;
 
 // load/store for data types
-multiclass STORE<PatFrag op, string asm> {
-  def FI : InstS<(outs), (ins GPR:$ra, mem:$addr), !strconcat(asm, "\t$ra, $addr"), [(op GPR:$ra, AddrFI:$addr)], IIAlu>;
-  def R : InstS<(outs), (ins GPR:$ra, GPR:$rb), !strconcat(asm, "\t$ra, 0($rb)"), [(op GPR:$ra, GPR:$rb)], IIAlu>;
+multiclass STORE<PatFrag op, string asm, DAGOperand ty> {
+  def FI : InstS<(outs), (ins ty:$ra, mem:$addr), !strconcat(asm, "\t$ra, $addr"), [(op ty:$ra, AddrFI:$addr)], IIAlu>;
+  def R : InstS<(outs), (ins ty:$ra, GPR:$rb), !strconcat(asm, "\t$ra, 0($rb)"), [(op ty:$ra, GPR:$rb)], IIAlu>;
 }
 
-defm STOREW:STORE<store,"sw">;
-defm STOREH:STORE<truncstorei16,"sh">;
-defm STOREB:STORE<truncstorei8,"sb">;
+defm STOREW:STORE<store, "sw", GPR>;
+defm STOREH:STORE<truncstorei16, "sh", GPR>;
+defm STOREB:STORE<truncstorei8, "sb", GPR>;
 
-multiclass LOAD<PatFrag op, string asm> {
-  def FI : InstI<(outs GPR:$ra), (ins mem:$addr), !strconcat(asm, "\t$ra, $addr"), [(set GPR:$ra, (op AddrFI:$addr))], IIAlu>;
-  def R : InstI<(outs GPR:$ra), (ins GPR:$rb), !strconcat(asm, "\t$ra, 0($rb)"), [(set GPR:$ra, (op GPR:$rb))], IIAlu>;
+defm STORF:STORE<store, "fsw", FPR>;
+
+multiclass LOAD<PatFrag op, string asm, DAGOperand ty> {
+  def FI : InstI<(outs ty:$ra), (ins mem:$addr), !strconcat(asm, "\t$ra, $addr"), [(set ty:$ra, (op AddrFI:$addr))], IIAlu>;
+  def R : InstI<(outs ty:$ra), (ins GPR:$rb), !strconcat(asm, "\t$ra, 0($rb)"), [(set ty:$ra, (op GPR:$rb))], IIAlu>;
 }
 
-defm LOADW:LOAD<load,"lw">;
-defm LOADH:LOAD<extloadi16,"lh">;
-defm LOADSH:LOAD<sextloadi16,"lh">;
-defm LOADZH:LOAD<zextloadi16,"lh">;
-defm LOADB:LOAD<extloadi8,"lb">;
-defm LOADSB:LOAD<sextloadi8,"lb">;
-defm LOADZB:LOAD<zextloadi8,"lb">;
+defm LOADW:LOAD<load, "lw", GPR>;
+defm LOADH:LOAD<extloadi16, "lh", GPR>;
+defm LOADSH:LOAD<sextloadi16, "lh", GPR>;
+defm LOADZH:LOAD<zextloadi16, "lh", GPR>;
+defm LOADB:LOAD<extloadi8, "lb", GPR>;
+defm LOADSB:LOAD<sextloadi8, "lb", GPR>;
+defm LOADZB:LOAD<zextloadi8, "lb", GPR>;
+
+defm LOADF:LOAD<load, "flw", FPR>;
 
 def ToyRET : SDNode<"ToyISD::Ret", SDTNone, [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
@@ -150,3 +154,21 @@ def : Pat<(i32 imm32:$in),
 
 def LEA_STACK : InstI<(outs GPR:$rd),(ins mem_stack:$mem), "addi \t$rd, $mem", [(set GPR:$rd, AddrFI:$mem)], IIAlu>;
 
+class ArithLogicF <string inst, SDNode node>:
+      InstR<(outs FPR:$rd), (ins FPR:$rs1, FPR:$rs2),
+      !strconcat(inst, "\t$rd, $rs1, $rs2"),
+      [(set FPR:$rd, (node FPR:$rs1, FPR:$rs2))],
+      IIAlu>;
+
+def FADDS : ArithLogicF<"fadd.s", fadd>;
+
+
+class FSETCC<string asm, PatFrag node>:InstR<(outs GPR:$rd),(ins FPR:$rs1, FPR:$rs2),
+                                     !strconcat(asm, "\t$rd, $rs1, $rs2"),
+                                     [(set GPR:$rd, (node FPR:$rs1, FPR:$rs2))], IIAlu>;
+def FEQS:FSETCC<"feq.s", seteq>;
+def FLTS:FSETCC<"flt.s", setlt>;
+def FLES:FSETCC<"fle.s", setle>;
+
+def : Pat<(setune FPR:$lhs, FPR:$rhs), (XORI (FEQS FPR:$lhs, FPR:$rhs), 1)>;
+def : Pat<(brcond GPR:$cond, bb:$dst), (BEQ GPR:$cond, (LI 1), brtarget:$dst)>;
