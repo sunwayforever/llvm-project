@@ -66,6 +66,7 @@ defm STOREH:STORE<truncstorei16, "sh", GPR>;
 defm STOREB:STORE<truncstorei8, "sb", GPR>;
 
 defm STORF:STORE<store, "fsw", FPR>;
+defm STORD:STORE<store, "fsd", FPR64>;
 
 multiclass LOAD<PatFrag op, string asm, DAGOperand ty> {
   def FI : InstI<(outs ty:$ra), (ins mem:$addr), !strconcat(asm, "\t$ra, $addr"), [(set ty:$ra, (op AddrFI:$addr))], IIAlu>;
@@ -81,6 +82,7 @@ defm LOADSB:LOAD<sextloadi8, "lb", GPR>;
 defm LOADZB:LOAD<zextloadi8, "lb", GPR>;
 
 defm LOADF:LOAD<load, "flw", FPR>;
+defm LOADD:LOAD<load, "fld", FPR64>;
 
 def ToyRET : SDNode<"ToyISD::Ret", SDTNone, [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
@@ -92,7 +94,7 @@ def J : InstJ<(outs),(ins brtarget:$imm12),
            "j\t${imm12}", [],
            IIAlu> {
   // NOTE: isTerminator is required to generator label of the fallthrough bb
-  let isTerminator = 1;         
+  let isTerminator = 1;
 }
 
 def RET : InstI<(outs),(ins), "ret", [(ToyRET)], IIAlu> {
@@ -161,7 +163,9 @@ class ArithLogicF <string inst, SDNode node>:
       IIAlu>;
 
 def FADDS : ArithLogicF<"fadd.s", fadd>;
-
+def FSUBS : ArithLogicF<"fsub.s", fsub>;
+def FMULS : ArithLogicF<"fmul.s", fmul>;
+def FDIVS : ArithLogicF<"fdiv.s", fdiv>;
 
 class FSETCC<string asm, PatFrag node>:InstR<(outs GPR:$rd),(ins FPR:$rs1, FPR:$rs2),
                                      !strconcat(asm, "\t$rd, $rs1, $rs2"),
@@ -171,4 +175,44 @@ def FLTS:FSETCC<"flt.s", setlt>;
 def FLES:FSETCC<"fle.s", setle>;
 
 def : Pat<(setune FPR:$lhs, FPR:$rhs), (XORI (FEQS FPR:$lhs, FPR:$rhs), 1)>;
+def : Pat<(setuge FPR:$lhs, FPR:$rhs), (FLTS FPR:$rhs, FPR:$lhs)>;
+def : Pat<(setule FPR:$lhs, FPR:$rhs), (FLES FPR:$lhs, FPR:$rhs)>;
+def : Pat<(setult FPR:$lhs, FPR:$rhs), (FLTS FPR:$lhs, FPR:$rhs)>;
+def : Pat<(setugt FPR:$lhs, FPR:$rhs), (FLTS FPR:$rhs, FPR:$lhs)>;
+
+def : Pat<(setone FPR:$lhs, FPR:$rhs), (XORI (FEQS FPR:$lhs, FPR:$rhs), 1)>;
+def : Pat<(setoge FPR:$lhs, FPR:$rhs), (FLTS FPR:$rhs, FPR:$lhs)>;
+def : Pat<(setole FPR:$lhs, FPR:$rhs), (FLES FPR:$lhs, FPR:$rhs)>;
+def : Pat<(setolt FPR:$lhs, FPR:$rhs), (FLTS FPR:$lhs, FPR:$rhs)>;
+def : Pat<(setogt FPR:$lhs, FPR:$rhs), (FLTS FPR:$rhs, FPR:$lhs)>;
+
 def : Pat<(brcond GPR:$cond, bb:$dst), (BEQ GPR:$cond, (LI 1), brtarget:$dst)>;
+
+class UnaryF <string inst, SDNode node>:
+      InstR<(outs FPR:$rd), (ins FPR:$rs1),
+      !strconcat(inst, "\t$rd, $rs1"),
+      [(set FPR:$rd, (node FPR:$rs1))],
+      IIAlu>;
+
+def FABSS:UnaryF<"fabs.s", fabs>;
+
+def FCVTSD : InstR<(outs FPR:$rd), (ins FPR64:$rs1),
+      "fcvt.s.d\t$rd, $rs1",
+      [(set FPR:$rd, (fpround FPR64:$rs1))],
+      IIAlu>;
+
+def FCVTDS : InstR<(outs FPR64:$rd), (ins FPR:$rs1),
+      "fcvt.d.s\t$rd, $rs1",
+      [(set FPR64:$rd, (fpextend FPR:$rs1))],
+      IIAlu>;
+
+class ArithLogicF64 <string inst, SDNode node>:
+      InstR<(outs FPR64:$rd), (ins FPR64:$rs1, FPR64:$rs2),
+      !strconcat(inst, "\t$rd, $rs1, $rs2"),
+      [(set FPR64:$rd, (node FPR64:$rs1, FPR64:$rs2))],
+      IIAlu>;
+
+def FADDD : ArithLogicF64<"fadd.d", fadd>;
+def FSUBD : ArithLogicF64<"fsub.d", fsub>;
+def FMULD : ArithLogicF64<"fmul.d", fmul>;
+def FDIVD : ArithLogicF64<"fdiv.d", fdiv>;

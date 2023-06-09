@@ -44,3 +44,8 @@ def FPR:RegisterClass<"Toy", [f32], 32, (add
     FT0, FT1, FT2,
     FS0, FS1,
     FA0, FA1, FA2, FA3, FA4, FA5, FA6, FA7)>;
+
+def FPR64:RegisterClass<"Toy", [f64], 64, (add
+    FT0, FT1, FT2,
+    FS0, FS1,
+    FA0, FA1, FA2, FA3, FA4, FA5, FA6, FA7)>;

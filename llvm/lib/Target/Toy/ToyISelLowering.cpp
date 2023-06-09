@@ -16,10 +16,13 @@ ToyTargetLowering::ToyTargetLowering(const TargetMachine &TM,
     : TargetLowering(TM), Subtarget(STI) {
   addRegisterClass(MVT::i32, &Toy::GPRRegClass);
   addRegisterClass(MVT::f32, &Toy::FPRRegClass);
+  addRegisterClass(MVT::f64, &Toy::FPR64RegClass);
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
   setOperationAction(ISD::ConstantPool, MVT::i32, Custom);
   setOperationAction(ISD::BR_CC, MVT::i32, Expand);
   setOperationAction(ISD::BR_CC, MVT::f32, Expand);
+  setTruncStoreAction(MVT::f64, MVT::f32, Expand);
+  setLoadExtAction(ISD::EXTLOAD, MVT::f64, MVT::f32, Expand);
   computeRegisterProperties(STI.getRegisterInfo());
 }
 

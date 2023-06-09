@@ -986,3 +986,17 @@ clang 在生成 llir 时就会根据传入的 target 信息决定用哪种方法
 4. 添加指令及其 pattern, 当前的 `float.c` 中需要实现 fadd, load, store, brcond
    及 setune. 由于 RISC-V 缺少 f32 br_cc (blt, beq, ...) 指令, 所以 f32 br_cc 会
    使用 f32 setcc 和 i32 br_cc 实现
+
+** toy-42: hard float Pt. 2
+
+加入基本的 f64 寄存器和指令.
+
+当处理 `float x=0.1` 时, 后端需要支持 truncstoref32. truncstoref32 实际做了两件
+事:
+
+1. 把 f64 truncate 成 f32
+2. 保存 f32 到内存
+
+riscv 中没有对应的指令, 需要用到 `setTruncStoreAction(MVT::f64, MVT::f32,
+Expand)`, 让 llvm 把它 expand 成 fround 和 store 两个指令, 分别对应 riscv 的
+fcvt.s.d 和 fsw 指令
