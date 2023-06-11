@@ -7,12 +7,11 @@
 
 * TODO
 
-- 硬浮点指令
 - 加入调试信息
 - 直接生成 object 而非汇编
 - objdump
 - instrinsic
 - 向量
 - 其它 RISC-V 扩展
-- 通过 [[https://github.com/llvm/llvm-test-suite/][llvm-test-suite]] 测试 
+- 通过 [[https://github.com/llvm/llvm-test-suite/][llvm-test-suite]] 测试
 - 优化

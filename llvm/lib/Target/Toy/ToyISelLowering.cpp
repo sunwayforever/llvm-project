@@ -22,6 +22,7 @@ ToyTargetLowering::ToyTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::BR_CC, MVT::i32, Expand);
   setOperationAction(ISD::BR_CC, MVT::f32, Expand);
   setTruncStoreAction(MVT::f64, MVT::f32, Expand);
+  setOperationAction(ISD::FMAXNUM, MVT::f32, Legal);
   setLoadExtAction(ISD::EXTLOAD, MVT::f64, MVT::f32, Expand);
   computeRegisterProperties(STI.getRegisterInfo());
 }
@@ -285,4 +286,9 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     }
   }
   return Chain;
+}
+
+bool ToyTargetLowering::isFMAFasterThanFMulAndFAdd(const MachineFunction &MF,
+                                                 EVT VT) const {
+  return true;
 }

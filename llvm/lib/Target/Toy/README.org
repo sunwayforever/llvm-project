@@ -1000,3 +1000,39 @@ clang 在生成 llir 时就会根据传入的 target 信息决定用哪种方法
 riscv 中没有对应的指令, 需要用到 `setTruncStoreAction(MVT::f64, MVT::f32,
 Expand)`, 让 llvm 把它 expand 成 fround 和 store 两个指令, 分别对应 riscv 的
 fcvt.s.d 和 fsw 指令
+
+** toy-43: builtin Pt. 1
+
+以 fma 和 fmaxf 为例
+
+*** fma
+
+clang 会发现代码可以转换为 fma, 会把它转换为 fmuladd 的 instrinsic, 然后
+SelectionDAGBuilder::visitIntrinsicCall 会负责把它转换为 fma 指令. 但如果
+isFMAFasterThanFMulAndFAdd 为 false, 则会转换为 fmul 和 fadd, 而不是 fma 指令.
+
+因为实现 fma 有两种做法:
+
+1. 定义 isFMAFasterThanFMulAndFAdd 返回 true, 并实现 fma 指令
+
+   #+begin_example
+     def FMADDS : InstR<(outs FPR:$rd), (ins FPR:$rs1, FPR:$rs2, FPR: $rs3),
+           "fmadd.s\t$rd, $rs1, $rs2, $rs3",
+           [(set FPR:$rd, (fma FPR:$rs1, FPR:$rs2, FPR:$rs3))],
+           IIAlu>;
+   #+end_example
+
+2. 在 td 中直接匹配复杂的 pattern:
+
+   #+begin_example
+     def FMADDS : InstR<(outs FPR:$rd), (ins FPR:$rs1, FPR:$rs2, FPR:$rs3),
+           "fmadd.s\t$rd, $rs1, $rs2, $rs3",
+           [(set FPR:$rd, (fadd (fmul FPR:$rs1,FPR:$rs2), FPR:$rs3))],
+           IIAlu>;
+   #+end_example
+
+*** fmaxf
+
+__builtin_fmaxf 在 visitIntrinsicCall 会转换为 fmaxnum, 但 TargetLoweringBase 默
+认把 fmaxnum 的 action 设置为 expand, 因此需要 setOperationAction 为 Legal 后再
+实现 fmaxnum 指令

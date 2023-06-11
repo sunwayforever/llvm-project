@@ -167,6 +167,16 @@ def FSUBS : ArithLogicF<"fsub.s", fsub>;
 def FMULS : ArithLogicF<"fmul.s", fmul>;
 def FDIVS : ArithLogicF<"fdiv.s", fdiv>;
 
+def FMADDS : InstR<(outs FPR:$rd), (ins FPR:$rs1, FPR:$rs2, FPR: $rs3),
+      "fmadd.s\t$rd, $rs1, $rs2, $rs3",
+      [(set FPR:$rd, (fma FPR:$rs1, FPR:$rs2, FPR:$rs3))],
+      IIAlu>;
+
+def FMAXNUM : InstR<(outs FPR:$rd), (ins FPR:$rs1, FPR:$rs2),
+      "fmax.s\t$rd, $rs1, $rs2",
+      [(set FPR:$rd, (fmaxnum FPR:$rs1, FPR:$rs2))],
+      IIAlu>;
+
 class FSETCC<string asm, PatFrag node>:InstR<(outs GPR:$rd),(ins FPR:$rs1, FPR:$rs2),
                                      !strconcat(asm, "\t$rd, $rs1, $rs2"),
                                      [(set GPR:$rd, (node FPR:$rs1, FPR:$rs2))], IIAlu>;
