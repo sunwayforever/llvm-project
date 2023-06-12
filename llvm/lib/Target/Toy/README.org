@@ -1036,3 +1036,16 @@ isFMAFasterThanFMulAndFAdd 为 false, 则会转换为 fmul 和 fadd, 而不是 f
 __builtin_fmaxf 在 visitIntrinsicCall 会转换为 fmaxnum, 但 TargetLoweringBase 默
 认把 fmaxnum 的 action 设置为 expand, 因此需要 setOperationAction 为 Legal 后再
 实现 fmaxnum 指令
+
+** toy-44: write object file Pt. 1
+
+https://blog.llvm.org/2010/04/intro-to-llvm-mc-project.html
+
+MCInst 在整个 MC 层处于中心的位置:
+
+MCInstPrinter:     把 MCInst 转换为 asm
+MCCodeEmitter:     把 MCInst 转换为 binary
+MCTargetAsmParser: 把 asm    转换为 MCInst
+MCDisassembler:    把 binary 转换为 MCInst
+
+目前的实现都是 stub, `make xxx.o` 可以生成一个空的 obj 文件
