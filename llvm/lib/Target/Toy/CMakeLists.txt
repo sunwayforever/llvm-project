@@ -8,6 +8,7 @@ tablegen(LLVM ToyGenInstrInfo.inc -gen-instr-info)
 tablegen(LLVM ToyGenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM ToyGenMCPseudoLowering.inc -gen-pseudo-lowering)
 tablegen(LLVM ToyGenCallingConv.inc -gen-callingconv)
+tablegen(LLVM ToyGenMCCodeEmitter.inc -gen-emitter)
 add_public_tablegen_target(ToyCommonTableGen)
 
 add_llvm_target(ToyCodeGen

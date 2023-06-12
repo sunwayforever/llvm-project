@@ -1,7 +1,7 @@
 // 2023-05-19 11:34
 #include "ToyTargetDesc.h"
 #include "ToyAsmBackend.h"
-#include "ToyCodeEmitter.h"
+#include "ToyMCCodeEmitter.h"
 #include "ToyInstPrinter.h"
 #include "llvm/ADT/None.h"
 #include "llvm/MC/MCAsmInfo.h"
@@ -43,6 +43,7 @@ static MCInstrInfo *createToyMCInstrInfo() {
 
 static MCRegisterInfo *createToyMCRegisterInfo(Triple const &TT) {
   MCRegisterInfo *x = new MCRegisterInfo();
+  InitToyMCRegisterInfo(x, Toy::RA);
   return x;
 }
 
@@ -54,9 +55,9 @@ static MCInstPrinter *createToyInstPrinter(Triple const &T,
   return new ToyInstPrinter(MAI, MII, MRI);
 }
 
-static MCCodeEmitter *createToyCodeEmitter(const MCInstrInfo &MCII,
+static MCCodeEmitter *createToyMCCodeEmitter(const MCInstrInfo &MCII,
                                            MCContext &Ctx) {
-  return new ToyCodeEmitter(MCII, Ctx);
+  return new ToyMCCodeEmitter(MCII, Ctx);
 }
 
 static MCAsmBackend *createToyAsmBackend(const Target &T,
@@ -73,6 +74,6 @@ extern "C" void LLVMInitializeToyTargetMC() {
                                           createToyMCSubtargetInfo);
   TargetRegistry::RegisterMCAsmInfo(TheToyTarget, createToyMCAsmInfo);
   TargetRegistry::RegisterMCInstPrinter(TheToyTarget, createToyInstPrinter);
-  TargetRegistry::RegisterMCCodeEmitter(TheToyTarget, createToyCodeEmitter);
+  TargetRegistry::RegisterMCCodeEmitter(TheToyTarget, createToyMCCodeEmitter);
   TargetRegistry::RegisterMCAsmBackend(TheToyTarget, createToyAsmBackend);
 }

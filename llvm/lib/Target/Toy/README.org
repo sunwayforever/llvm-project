@@ -1049,3 +1049,14 @@ MCTargetAsmParser: 把 asm    转换为 MCInst
 MCDisassembler:    把 binary 转换为 MCInst
 
 目前的实现都是 stub, `make xxx.o` 可以生成一个空的 obj 文件
+
+** toy-45: write object file Pt. 2
+
+支持 I 指令 (addi, lw...), S 指令 (sw, ...) 和 R 指令 (add, sub, ...) 的 encoding
+
+去掉了针对 AddrFI 的 mem operand. 由于 I 指令中关于 imm 编码的特殊性, 目前无法实
+现其 EncoderMethod. 对于通过 ComplexPattern 匹配的 operand, 实际上可以通过
+`[(load GPR:$rs2, (AddrFI GPR:$rs1, imm12:$imm))]` 的形式使用, 无需使用 mem 这种
+operand
+
+`make arith.o` 产生的 object 除了伪指令 ret, 其它都是正确的.
