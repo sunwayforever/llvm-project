@@ -4,4 +4,6 @@ add_llvm_library(LLVMToyDesc
   ToyMCCodeEmitter.cpp
   ToyAsmBackend.cpp
   ToyELFObjectWriter.cpp
+  ToyMCExpr.cpp
+  ToyTargetStreamer.cpp
 )

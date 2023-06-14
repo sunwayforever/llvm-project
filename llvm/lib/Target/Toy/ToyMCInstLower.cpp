@@ -1,5 +1,7 @@
 // 2023-05-24 16:14
 #include "ToyMCInstLower.h"
+#include "TargetDesc/ToyBaseInfo.h"
+#include "TargetDesc/ToyMCExpr.h"
 #include "ToyAsmPrinter.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineInstr.h"
@@ -22,7 +24,21 @@ void ToyMCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
 
 MCOperand ToyMCInstLower::LowerSymbolOperand(const MachineOperand &MO) const {
   MCContext &Ctx = AsmPrinter.OutContext;
+  ToyMCExpr::ToyExprKind TargetKind = ToyMCExpr::TEK_NONE;
   const MCSymbol *Symbol;
+
+  switch (MO.getTargetFlags()) {
+  default:
+    llvm_unreachable("Invalid target flag!");
+  case ToyII::MO_NO_FLAG:
+    break;
+  case ToyII::MO_HI:
+    TargetKind = ToyMCExpr::TEK_HI;
+    break;
+  case ToyII::MO_LO:
+    TargetKind = ToyMCExpr::TEK_LO;
+    break;
+  }
 
   switch (MO.getType()) {
   case MachineOperand::MO_ConstantPoolIndex:
@@ -43,6 +59,7 @@ MCOperand ToyMCInstLower::LowerSymbolOperand(const MachineOperand &MO) const {
 
   const MCExpr *Expr =
       MCSymbolRefExpr::create(Symbol, MCSymbolRefExpr::VK_None, Ctx);
+  Expr = new ToyMCExpr(TargetKind, Expr);
 
   return MCOperand::createExpr(Expr);
 }

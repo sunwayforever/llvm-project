@@ -42,7 +42,7 @@ def SLL : ArithLogicR<0b0000000, 0b001, "sll", shl>;
 def SRA : ArithLogicR<0b0100000, 0b101, "sra", sra>;
 def SRL : ArithLogicR<0b0000000, 0b101, "srl", srl>;
 
-def LUI : InstU<(outs GPR:$rd), (ins imm20:$imm),
+def LUI : InstU<0b0110111, (outs GPR:$rd), (ins imm20:$imm),
           "lui $rd, $imm", [], IIAlu>;
 
 def AddrFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantParent]>;
@@ -92,22 +92,22 @@ def J : InstJ<(outs),(ins brtarget:$imm12),
   let isTerminator = 1;
 }
 
-def RET : ToyPseudo<(outs),(ins), "ret", [(ToyRET)]> {
+def JALR : InstI<0b1100111, 0b000, (outs GPR:$rd), (ins GPR:$rs1, imm12:$imm),
+      "jalr \t$rd, $rs1, $imm", [], IIAlu>;
+
+def RET : ToyPseudo<(outs),(ins),"",[(ToyRET)]>, PseudoInstExpansion<(JALR ZERO, RA, 0)> {
     let isReturn = 1;
     let isTerminator=1;
+    let isPseudo = 1;
 }
 
 def SDT_Call      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
 
 def ToyCall : SDNode<"ToyISD::Call", SDT_Call, [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue, SDNPVariadic]>;
 
-def CALL : ToyPseudo<(outs),(ins calltarget:$rs1), "call\t$rs1", []> {
-    // NOTE: isCall is required to save RA, check `determineCalleeSaves` for details
+def CALL : ToyPseudo<(outs),(ins GPR:$rs1),"",[(ToyCall GPR:$rs1)]>, PseudoInstExpansion<(JALR RA, GPR:$rs1, 0)> {
     let isCall = 1;
 }
-
-def : Pat<(ToyCall tglobaladdr:$rs1),(CALL calltarget:$rs1)>;
-def : Pat<(ToyCall texternalsym:$rs1),(CALL calltarget:$rs1)>;
 
 def LEA : ToyPseudo<(outs GPR:$rd),(ins calltarget:$rs1), "la\t$rd, $rs1", []>;
 

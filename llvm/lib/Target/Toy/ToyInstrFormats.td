@@ -63,8 +63,16 @@ class InstR4<bits<7> opcode, bits<2> funct2, bits<3> funct3, dag outs,
       let Inst{11-7} = rd;
 }
 
-class InstU<dag outs, dag ins, string asm, list<dag> pattern,
-      InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{}
+class InstU<bits<7> opcode, dag outs, dag ins, string asm, list<dag> pattern,
+      InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{
+      let Opcode = opcode;
+
+      bits<5> rd;
+      bits<20> imm;
+
+      let Inst{31-12} = imm;
+      let Inst{11-7} = rd;
+}
 
 class InstB<dag outs, dag ins, string asm, list<dag> pattern,
       InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{}

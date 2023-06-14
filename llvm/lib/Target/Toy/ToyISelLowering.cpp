@@ -1,5 +1,6 @@
 // 2023-05-23 10:23
 #include "ToyISelLowering.h"
+#include "TargetDesc/ToyBaseInfo.h"
 #include "TargetDesc/ToyTargetDesc.h"
 #include "ToySubtarget.h"
 #include "llvm/CodeGen/CallingConvLower.h"
@@ -155,10 +156,14 @@ SDValue ToyTargetLowering::lowerGlobalAddress(SDValue Op,
   GlobalAddressSDNode *N = cast<GlobalAddressSDNode>(Op);
   int64_t Offset = N->getOffset();
   SDLoc DL(N);
-  SDValue Addr = SDValue(
-      DAG.getMachineNode(Toy::LEA, DL, Ty,
-                         DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0)),
-      0);
+  SDValue Hi =
+      DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_HI);
+  SDValue Lo =
+      DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_LO);
+  // return DAG.getNode(ISD::ADD, DL, Ty, DAG.getNode(ToyISD::Hi, DL, Ty, Hi),
+  //                    DAG.getNode(ToyISD::Lo, DL, Ty, Lo));
+  SDValue MNHi = SDValue(DAG.getMachineNode(Toy::LUI, DL, Ty, Hi), 0);
+  SDValue Addr = SDValue(DAG.getMachineNode(Toy::ADDI, DL, Ty, MNHi, Lo), 0);
   if (Offset != 0) {
     return DAG.getNode(ISD::ADD, DL, Ty, Addr, DAG.getConstant(Offset, DL, Ty));
   }
@@ -236,14 +241,31 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     }
   }
   // -------------------------------------------
+
   if (GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee)) {
-    Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL,
-                                        getPointerTy(DAG.getDataLayout()), 0);
+    EVT Ty = getPointerTy(DAG.getDataLayout());
+    SDValue Hi =
+        DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_HI);
+    SDValue Lo =
+        DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, ToyII::MO_LO);
+    SDValue MNHi = SDValue(DAG.getMachineNode(Toy::LUI, DL, Ty, Hi), 0);
+
+    Callee = SDValue(DAG.getMachineNode(Toy::ADDI, DL, Ty, MNHi, Lo), 0);
   } else if (ExternalSymbolSDNode *S = dyn_cast<ExternalSymbolSDNode>(Callee)) {
     const char *Sym = S->getSymbol();
-    Callee =
-        DAG.getTargetExternalSymbol(Sym, getPointerTy(DAG.getDataLayout()));
+    EVT Ty = getPointerTy(DAG.getDataLayout());
+    SDValue Hi = DAG.getTargetExternalSymbol(
+        Sym, getPointerTy(DAG.getDataLayout()), ToyII::MO_HI);
+
+    SDValue Lo = DAG.getTargetExternalSymbol(
+        Sym, getPointerTy(DAG.getDataLayout()), ToyII::MO_LO);
+
+    SDValue MNHi = SDValue(DAG.getMachineNode(Toy::LUI, DL, Ty, Hi), 0);
+
+    Callee = SDValue(DAG.getMachineNode(Toy::ADDI, DL, Ty, MNHi, Lo), 0);
   }
+
+  GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
 
   SmallVector<SDValue, 8> Ops(1, Chain);
   Ops.push_back(Callee);
@@ -289,6 +311,6 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 }
 
 bool ToyTargetLowering::isFMAFasterThanFMulAndFAdd(const MachineFunction &MF,
-                                                 EVT VT) const {
+                                                   EVT VT) const {
   return true;
 }

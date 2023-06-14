@@ -3,7 +3,6 @@ void foo() {
   int a = 10;
   int b = a + 10;
   int c = a - 1;
-  int cc = b - c;
   int d = b + c;
   int e = b * c;
   int f = b / c;
@@ -14,4 +13,7 @@ void foo() {
   int k = b | c | 1;
 };
 
-int main(int argc, char *argv[]) { return 0; }
+int main(int argc, char *argv[]) {
+  foo();
+  return 0;
+}

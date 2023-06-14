@@ -17,6 +17,7 @@ all:build
 CLANG_PREFIX ?= /opt/llvm-riscv/bin/
 GCC_PREFIX ?= riscv64-unknown-linux-gnu-
 DEBUG ?=
+BINARY ?=
 
 EXECUTABLES = ${CLANG_PREFIX}clang lld ninja cmake ${GCC_PREFIX}gcc qemu-riscv32
 K := $(foreach exec,$(EXECUTABLES), $(if $(shell command -v $(exec)	\
@@ -30,6 +31,7 @@ TEST_SRC := $(shell find ./ -name "*.c" -printf '%P\n')
 TEST_SRC := $(filter-out ${MAIN_SRC}, ${TEST_SRC})
 TEST_BC := $(patsubst %.c,%.bc,${TEST_SRC})
 TEST_LL := $(patsubst %.c,%.ll,${TEST_SRC})
+
 TEST_ASM := $(patsubst %.c,%.s,${TEST_SRC})
 TEST_OBJ := $(patsubst %.c,%.o,${TEST_SRC})
 
@@ -50,7 +52,11 @@ ${TEST_OBJ}:llvm
 ${TEST_OBJ}:%.o:%.bc
 	../build/bin/llc $< -march=toy -filetype=obj -o $@ ${DEBUG}
 
+ifeq (${BINARY}, 1)
+${RUN_ELF}:%.elf:%.o
+else
 ${RUN_ELF}:%.elf:%.s
+endif
 	${GCC_PREFIX}gcc -march=rv32g -mabi=ilp32d $^ -O0 -o $@ -static
 
 ${CHECK_ASM}:check_%:%.s

@@ -1,8 +1,11 @@
 // 2023-06-12 16:06
 #include "ToyMCCodeEmitter.h"
+#include "ToyFixupKinds.h"
+#include "ToyMCExpr.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCFixup.h"
 #include "llvm/MC/MCRegisterInfo.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -33,8 +36,19 @@ unsigned ToyMCCodeEmitter::getMachineOpValue(const MCInst &MI,
   } else if (MO.isImm()) {
     return static_cast<unsigned>(MO.getImm());
   }
-  // MO must be an Expr.
   assert(MO.isExpr());
+  const MCExpr *Expr = MO.getExpr();
+  const ToyMCExpr *ToyExpr = cast<ToyMCExpr>(Expr);
+  Toy::Fixups FixupKind = Toy::Fixups::fixup_riscv_invalid;
+  switch (ToyExpr->getKind()) {
+  case ToyMCExpr::TEK_HI:
+    FixupKind = Toy::Fixups::fixup_riscv_hi20;
+    break;
+  case ToyMCExpr::TEK_LO:
+    FixupKind = Toy::Fixups::fixup_riscv_lo12_i;
+    break;
+  }
+  Fixups.push_back(MCFixup::create(0, Expr, MCFixupKind(FixupKind)));
   return 0;
 }
 

@@ -1060,3 +1060,15 @@ MCDisassembler:    把 binary 转换为 MCInst
 operand
 
 `make arith.o` 产生的 object 除了伪指令 ret, 其它都是正确的.
+
+** toy-46: write object file Pt. 3
+
+目前使用伪指令实现 RET 和 CALL, 在输出 asm 比较容易, 但没有考虑 encoding 的问题.
+
+RET 转换成 jalr 比较容易, 它直接对应了 `jalr zero, 0(ra)`.
+
+CALL 转换 jalr 时由于涉及到 symbol 的问题, 需要转换为 `lui t0, %hi(addr); addi
+t0, %lo(addr); jarl ra, 0(t0)`, 其中 hi/lo 需要转换为 fixup 信息 (类型, 原指令需
+要被 patch 的 offset 和长度) 保存在 object 中 [[id:4fabbae2-594b-4f7d-bcb9-756212cfbe9f][Linker Relocation]]
+
+`make run_arith BINARY=1` 可以正常运行, 但还剩几个伪指令 (j, lea, ...) 没有处理

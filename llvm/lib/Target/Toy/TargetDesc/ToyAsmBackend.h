@@ -2,6 +2,7 @@
 #ifndef TOY_ASM_BACKEND_H
 #define TOY_ASM_BACKEND_H
 
+#include "ToyFixupKinds.h"
 #include "llvm/MC/MCAsmBackend.h"
 #include "llvm/TargetParser/Triple.h"
 
@@ -24,7 +25,9 @@ public:
 
   const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
 
-  unsigned getNumFixupKinds() const override { return 0; }
+  unsigned getNumFixupKinds() const override {
+    return Toy::NumTargetFixupKinds;
+  }
 
   bool mayNeedRelaxation(const MCInst &Inst,
                          const MCSubtargetInfo &STI) const override {
