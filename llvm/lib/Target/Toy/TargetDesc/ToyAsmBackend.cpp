@@ -12,6 +12,8 @@ const MCFixupKindInfo &ToyAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
       // name                      offset bits  flags
       {"fixup_riscv_hi20", 12, 20, 0},
       {"fixup_riscv_lo12_i", 20, 12, 0},
+      {"fixup_riscv_jal", 12, 20, 0},
+      {"fixup_riscv_branch", 0, 32, 0},
   };
 
   if (Kind < FirstTargetFixupKind)

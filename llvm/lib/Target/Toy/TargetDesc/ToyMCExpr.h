@@ -13,6 +13,8 @@ public:
     TEK_NONE,
     TEK_HI,
     TEK_LO,
+    TEK_JAL,
+    TEK_BRANCH,
   };
   ToyMCExpr(ToyExprKind Kind, const MCExpr *Expr) : Kind(Kind), Expr(Expr) {}
   void printImpl(raw_ostream &OS, const MCAsmInfo *MAI) const override;

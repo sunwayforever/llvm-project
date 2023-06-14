@@ -74,8 +74,21 @@ class InstU<bits<7> opcode, dag outs, dag ins, string asm, list<dag> pattern,
       let Inst{11-7} = rd;
 }
 
-class InstB<dag outs, dag ins, string asm, list<dag> pattern,
-      InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{}
+class InstB<bits<7> opcode, bits<3> funct3, dag outs, dag ins, string asm, list<dag> pattern,
+      InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{
+      let Opcode = opcode;
+      bits<5> rs2;
+      bits<5> rs1;
+      bits<12> imm12;
+
+      let Inst{31} = imm12{11};
+      let Inst{30-25} = imm12{9-4};
+      let Inst{24-20} = rs2;
+      let Inst{19-15} = rs1;
+      let Inst{14-12} = funct3;
+      let Inst{11-8} = imm12{3-0};
+      let Inst{7} = imm12{10};
+}
 
 class InstS<bits<7> opcode, bits<3> funct3, dag outs, dag ins, string asm, list<dag> pattern,
       InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{
@@ -91,8 +104,18 @@ class InstS<bits<7> opcode, bits<3> funct3, dag outs, dag ins, string asm, list<
       let Inst{11-7} = imm{4-0};
 }
 
-class InstJ<dag outs, dag ins, string asm, list<dag> pattern,
-      InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{}
+class InstJ<bits<7> opcode, dag outs, dag ins, string asm, list<dag> pattern,
+      InstrItinClass itin>: ToyInst<outs, ins, asm, pattern, itin>{
+      let Opcode = opcode;
+      bits<20> imm20;
+      bits<5> rd;
+
+      let Inst{31} = imm20{19};
+      let Inst{30-21} = imm20{9-0};
+      let Inst{20} = imm20{10};
+      let Inst{19-12} = imm20{18-11};
+      let Inst{11-7} = rd;
+}
 
 class ToyPseudo<dag outs, dag ins, string asmstr, list<dag> pattern>:
       ToyInst<outs, ins, asmstr, pattern, IIAlu> {

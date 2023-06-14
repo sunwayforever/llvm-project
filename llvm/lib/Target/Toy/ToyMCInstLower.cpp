@@ -12,17 +12,24 @@ using namespace llvm;
 
 void ToyMCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
   OutMI.setOpcode(MI->getOpcode());
+  unsigned int Opcode = MI->getOpcode();
+  int IsBranch = 0;
+  if (Opcode == Toy::BLT || Opcode == Toy::BEQ || Opcode == Toy::BNE ||
+      Opcode == Toy::BGE) {
+    IsBranch = 1;
+  }
 
   for (unsigned i = 0, e = MI->getNumOperands(); i != e; ++i) {
     const MachineOperand &MO = MI->getOperand(i);
-    MCOperand MCOp = LowerOperand(MO);
+    MCOperand MCOp = LowerOperand(MO, IsBranch);
     if (MCOp.isValid()) {
       OutMI.addOperand(MCOp);
     }
   }
 }
 
-MCOperand ToyMCInstLower::LowerSymbolOperand(const MachineOperand &MO) const {
+MCOperand ToyMCInstLower::LowerSymbolOperand(const MachineOperand &MO,
+                                             int IsBranch) const {
   MCContext &Ctx = AsmPrinter.OutContext;
   ToyMCExpr::ToyExprKind TargetKind = ToyMCExpr::TEK_NONE;
   const MCSymbol *Symbol;
@@ -48,6 +55,11 @@ MCOperand ToyMCInstLower::LowerSymbolOperand(const MachineOperand &MO) const {
     Symbol = AsmPrinter.getSymbol(MO.getGlobal());
     break;
   case MachineOperand::MO_MachineBasicBlock:
+    if (IsBranch == 0) {
+      TargetKind = ToyMCExpr::TEK_JAL;
+    } else {
+      TargetKind = ToyMCExpr::TEK_BRANCH;
+    }
     Symbol = MO.getMBB()->getSymbol();
     break;
   case MachineOperand::MO_ExternalSymbol:
@@ -64,7 +76,8 @@ MCOperand ToyMCInstLower::LowerSymbolOperand(const MachineOperand &MO) const {
   return MCOperand::createExpr(Expr);
 }
 
-MCOperand ToyMCInstLower::LowerOperand(const MachineOperand &MO) const {
+MCOperand ToyMCInstLower::LowerOperand(const MachineOperand &MO,
+                                       int IsBranch) const {
   switch (MO.getType()) {
   case MachineOperand::MO_Register:
     return MCOperand::createReg(MO.getReg());
@@ -74,7 +87,7 @@ MCOperand ToyMCInstLower::LowerOperand(const MachineOperand &MO) const {
   case MachineOperand::MO_ConstantPoolIndex:
   case MachineOperand::MO_ExternalSymbol:
   case MachineOperand::MO_MachineBasicBlock:
-    return LowerSymbolOperand(MO);
+    return LowerSymbolOperand(MO, IsBranch);
   }
 
   return MCOperand();

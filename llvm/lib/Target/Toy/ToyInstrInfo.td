@@ -2,15 +2,8 @@ include "ToyInstrFormats.td"
 
 def imm12 : Operand<i32>, ImmLeaf<i32, [{return isInt<12>(Imm);}]>;
 def imm20 : Operand<i32>, ImmLeaf<i32, [{return isInt<20>(Imm);}]>;
-def imm32 : Operand<i32>, ImmLeaf<i32, [{return isInt<32>(Imm);}]>;
 
 def brtarget : Operand<OtherVT>;
-def calltarget  : Operand<iPTR>;
-
-def mem_stack : Operand<iPTR> {
-  let MIOperandInfo = (ops GPR, imm12);
-  let PrintMethod = "printMemStackOperand";
-}
 
 class ArithLogicI <bits<7> opcode, bits<3> funct3, string inst, SDNode node>:
       InstI<opcode, funct3, (outs GPR:$rd), (ins GPR:$rs1, imm12:$imm),
@@ -85,15 +78,16 @@ defm LOADD:LOAD<0b0000111, 0b011, load, "fld", FPR64>;
 
 def ToyRET : SDNode<"ToyISD::Ret", SDTNone, [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
-def J : InstJ<(outs),(ins brtarget:$imm12),
-           "j\t${imm12}", [],
+def J : InstJ<0b1101111, (outs),(ins brtarget:$imm20),
+           "jal\tzero, ${imm20}", [(br bb:$imm20)],
            IIAlu> {
   // NOTE: isTerminator is required to generator label of the fallthrough bb
   let isTerminator = 1;
+  let rd = 0;
 }
 
 def JALR : InstI<0b1100111, 0b000, (outs GPR:$rd), (ins GPR:$rs1, imm12:$imm),
-      "jalr \t$rd, $rs1, $imm", [], IIAlu>;
+      "jalr\t$rd, $rs1, $imm", [], IIAlu>;
 
 def RET : ToyPseudo<(outs),(ins),"",[(ToyRET)]>, PseudoInstExpansion<(JALR ZERO, RA, 0)> {
     let isReturn = 1;
@@ -109,26 +103,25 @@ def CALL : ToyPseudo<(outs),(ins GPR:$rs1),"",[(ToyCall GPR:$rs1)]>, PseudoInstE
     let isCall = 1;
 }
 
-def LEA : ToyPseudo<(outs GPR:$rd),(ins calltarget:$rs1), "la\t$rd, $rs1", []>;
-
 def SLT : InstR<0b0110011, 0b0000000, 0b010, (outs GPR:$rd),(ins GPR:$rs1, GPR:$rs2),
            "slt\t$rd, $rs1, $rs2", [],
            IIAlu>;
 
 def : Pat<(setgt GPR:$lhs, GPR:$rhs), (SLT GPR:$rhs, GPR:$lhs)>;
 def : Pat<(setlt GPR:$lhs, GPR:$rhs), (SLT GPR:$lhs, GPR:$rhs)>;
-def : Pat<(seteq GPR:$lhs, GPR:$rhs), (SLT (XOR GPR:$lhs, GPR:$rhs), 1)>;
+def : Pat<(seteq GPR:$lhs, GPR:$rhs), (SLT (XOR GPR:$lhs, GPR:$rhs), (ADDI ZERO, 1))>;
 def : Pat<(setne GPR:$lhs, GPR:$rhs), (SLT ZERO, (XOR GPR:$lhs, GPR:$rhs))>;
 // def : Pat<(setge GPR:$rs1, GPR:$rs2), (XORI (SLT GPR:$rs1, GPR:$rs2), 1)>;
 // def : Pat<(setle GPR:$rs1, GPR:$rs2), (XORI (SLT GPR:$rs2, GPR:$rs1), 1)>;
 
-class BRANCH<string asm>:InstB<(outs),(ins GPR:$rs1, GPR:$rs2, brtarget:$imm),
-                                     !strconcat(asm, "\t$rs1, $rs2, $imm"),
-                                     [], IIAlu>;
-def BLT:BRANCH<"blt">;
-def BEQ:BRANCH<"beq">;
-def BNE:BRANCH<"bne">;
-def BGE:BRANCH<"bge">;
+class BRANCH<bits<3> funct3, string asm>:InstB<0b1100011, funct3, (outs),
+                                               (ins GPR:$rs1, GPR:$rs2, brtarget:$imm12),
+                                               !strconcat(asm, "\t$rs1, $rs2, $imm12"),
+                                               [], IIAlu>;
+def BLT:BRANCH<0b100, "blt">;
+def BEQ:BRANCH<0b000, "beq">;
+def BNE:BRANCH<0b001, "bne">;
+def BGE:BRANCH<0b101, "bge">;
 
 def : Pat<(brcond (i32 (setlt GPR:$lhs, GPR:$rhs)), bb:$dst), (BLT GPR:$lhs, GPR:$rhs, brtarget:$dst)>;
 
@@ -141,13 +134,6 @@ def : Pat<(brcond (i32 (setne GPR:$lhs, GPR:$rhs)), bb:$dst), (BNE GPR:$lhs, GPR
 def : Pat<(brcond (i32 (setge GPR:$lhs, GPR:$rhs)), bb:$dst), (BGE GPR:$lhs, GPR:$rhs, brtarget:$dst)>;
 
 def : Pat<(brcond (i32 (setle GPR:$lhs, GPR:$rhs)), bb:$dst), (BGE GPR:$rhs, GPR:$lhs, brtarget:$dst)>;
-
-def : Pat<(br bb:$imm), (J brtarget:$imm)>;
-
-def LI : ToyPseudo<(outs GPR:$rd),(ins imm32:$rs1), "li\t$rd, $rs1", []>;
-
-def : Pat<(i32 imm32:$in),
-          (LI imm32:$in)>;
 
 def : Pat<(AddrFI GPR:$rs1, imm12:$imm), (ADDI GPR:$rs1, imm12:$imm)>;
 
@@ -190,17 +176,19 @@ def : Pat<(setole FPR:$lhs, FPR:$rhs), (FLES FPR:$lhs, FPR:$rhs)>;
 def : Pat<(setolt FPR:$lhs, FPR:$rhs), (FLTS FPR:$lhs, FPR:$rhs)>;
 def : Pat<(setogt FPR:$lhs, FPR:$rhs), (FLTS FPR:$rhs, FPR:$lhs)>;
 
-def : Pat<(brcond GPR:$cond, bb:$dst), (BEQ GPR:$cond, (LI 1), brtarget:$dst)>;
+def : Pat<(brcond GPR:$cond, bb:$dst), (BEQ GPR:$cond, (ADDI ZERO, 1), brtarget:$dst)>;
 
-def FABSS:ToyPseudo<(outs FPR:$rd), (ins FPR:$rs1),
-      "fabs.s $rd, $rs1",
-      [(set FPR:$rd, (fabs FPR:$rs1))]>;
+def FSGNJXS : InstR<0b1010011, 0b0010000, 0b010, (outs FPR:$rd), (ins FPR:$rs1, FPR:$rs2),
+      "fsgnjx.s\t$rd, $rs1, $rs2", [], IIAlu>;
 
+def FABSS:ToyPseudo<(outs FPR:$rd), (ins FPR:$rs1),"", [(set FPR:$rd, (fabs FPR:$rs1))]>,
+          PseudoInstExpansion<(FSGNJXS FPR:$rd, FPR:$rs1, FPR:$rs1)>;
+      
 def FCVTSD : InstR<0b1010011, 0b0100000, 0b000, (outs FPR:$rd), (ins FPR64:$rs1),
       "fcvt.s.d\t$rd, $rs1",
       [(set FPR:$rd, (fpround FPR64:$rs1))],
       IIAlu> {
-      let rs2=0;
+      let rs2=1;
 }
 
 def FCVTDS : InstR<0b1010011, 0b0100001, 0b000, (outs FPR64:$rd), (ins FPR:$rs1),

@@ -1071,4 +1071,13 @@ CALL 转换 jalr 时由于涉及到 symbol 的问题, 需要转换为 `lui t0, %
 t0, %lo(addr); jarl ra, 0(t0)`, 其中 hi/lo 需要转换为 fixup 信息 (类型, 原指令需
 要被 patch 的 offset 和长度) 保存在 object 中 [[id:4fabbae2-594b-4f7d-bcb9-756212cfbe9f][Linker Relocation]]
 
-`make run_arith BINARY=1` 可以正常运行, 但还剩几个伪指令 (j, lea, ...) 没有处理
+`make run_arith BINARY=1` 可以正常运行, 但还剩几个伪指令 (j, lea, ...) 和 branch
+没有处理
+
+** toy-47: write object file Pt. 4
+
+j 指令需要使用 jal 实现, 并使用 jal 类型的 fixup
+
+branch 指令和 jal 类似, 但使用 branch 的 fixup
+
+`make run BINARY=1` 现在都能正常运行.

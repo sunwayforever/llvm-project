@@ -17,6 +17,10 @@ unsigned ToyELFObjectWriter::getRelocType(MCContext &Ctx, const MCValue &Target,
     return ELF::R_RISCV_HI20;
   case Toy::fixup_riscv_lo12_i:
     return ELF::R_RISCV_LO12_I;
+  case Toy::fixup_riscv_jal:
+    return ELF::R_RISCV_JAL;
+  case Toy::fixup_riscv_branch:
+    return ELF::R_RISCV_BRANCH;
   }
   return ELF::R_RISCV_NONE;
 }

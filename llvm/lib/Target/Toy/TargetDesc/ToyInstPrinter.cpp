@@ -36,10 +36,3 @@ void ToyInstPrinter::printOperand(MCInst const *MI, unsigned OpNum,
 
   Op.getExpr()->print(O, &MAI, true);
 }
-
-void ToyInstPrinter::printMemStackOperand(const MCInst *MI, int opNum,
-                                     raw_ostream &O) {
-  printOperand(MI, opNum, O);
-  O << ",";
-  printOperand(MI, opNum + 1, O);
-}

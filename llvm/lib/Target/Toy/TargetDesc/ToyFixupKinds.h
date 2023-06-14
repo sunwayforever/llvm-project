@@ -11,6 +11,8 @@ enum Fixups {
   fixup_riscv_hi20 = FirstTargetFixupKind,
   // 12-bit fixup corresponding to %lo(foo) for instructions like addi
   fixup_riscv_lo12_i,
+  fixup_riscv_jal,
+  fixup_riscv_branch,
   fixup_riscv_invalid,
   NumTargetFixupKinds = fixup_riscv_invalid - FirstTargetFixupKind
 };

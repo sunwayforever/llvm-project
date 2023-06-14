@@ -47,6 +47,12 @@ unsigned ToyMCCodeEmitter::getMachineOpValue(const MCInst &MI,
   case ToyMCExpr::TEK_LO:
     FixupKind = Toy::Fixups::fixup_riscv_lo12_i;
     break;
+  case ToyMCExpr::TEK_JAL:
+    FixupKind = Toy::Fixups::fixup_riscv_jal;
+    break;
+  case ToyMCExpr::TEK_BRANCH:
+    FixupKind = Toy::Fixups::fixup_riscv_branch;
+    break;
   }
   Fixups.push_back(MCFixup::create(0, Expr, MCFixupKind(FixupKind)));
   return 0;

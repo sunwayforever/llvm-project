@@ -175,12 +175,12 @@ SDValue ToyTargetLowering::lowerConstantPool(SDValue Op,
   EVT Ty = Op.getValueType();
   ConstantPoolSDNode *N = cast<ConstantPoolSDNode>(Op);
   SDLoc DL(N);
-  SDValue Addr =
-      SDValue(DAG.getMachineNode(Toy::LEA, DL, Ty,
-                                 DAG.getTargetConstantPool(N->getConstVal(), Ty,
-                                                           N->getAlign(),
-                                                           N->getOffset(), 0)),
-              0);
+  SDValue Hi = DAG.getTargetConstantPool(N->getConstVal(), Ty, N->getAlign(),
+                                         N->getOffset(), ToyII::MO_HI);
+  SDValue Lo = DAG.getTargetConstantPool(N->getConstVal(), Ty, N->getAlign(),
+                                         N->getOffset(), ToyII::MO_LO);
+  SDValue MNHi = SDValue(DAG.getMachineNode(Toy::LUI, DL, Ty, Hi), 0);
+  SDValue Addr = SDValue(DAG.getMachineNode(Toy::ADDI, DL, Ty, MNHi, Lo), 0);
 
   return Addr;
 }

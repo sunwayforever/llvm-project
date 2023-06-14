@@ -8,7 +8,6 @@
 * TODO
 
 - 加入调试信息
-- 直接生成 object 而非汇编
 - objdump
 - instrinsic
 - 向量

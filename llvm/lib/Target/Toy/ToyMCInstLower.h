@@ -11,12 +11,12 @@ class ToyAsmPrinter;
 class ToyMCInstLower {
 private:
   ToyAsmPrinter &AsmPrinter;
-  MCOperand LowerSymbolOperand(const MachineOperand &MO) const;
+  MCOperand LowerSymbolOperand(const MachineOperand &MO, int IsBranch) const;
 
 public:
   ToyMCInstLower(ToyAsmPrinter &printer) : AsmPrinter(printer){};
   void Lower(const MachineInstr *MI, MCInst &OutMI) const;
-  MCOperand LowerOperand(const MachineOperand &MO) const;
+  MCOperand LowerOperand(const MachineOperand &MO, int IsBranch) const;
 };
 } // namespace llvm
 
