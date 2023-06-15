@@ -9,7 +9,7 @@
 using namespace llvm;
 
 ToyFrameLowering::ToyFrameLowering(ToySubtarget &sti)
-    : TargetFrameLowering(StackGrowsDown, Align(16), 0), STI(sti) {}
+    : TargetFrameLowering(StackGrowsDown, Align(16), 0, Align(16)), STI(sti) {}
 
 void ToyFrameLowering::emitPrologue(MachineFunction &MF,
                                     MachineBasicBlock &MBB) const {

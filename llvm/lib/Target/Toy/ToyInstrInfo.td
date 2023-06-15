@@ -151,6 +151,11 @@ def FMADDS : InstR4<0b1000011, 0b00, 0b000, (outs FPR:$rd), (ins FPR:$rs1, FPR:$
       [(set FPR:$rd, (fma FPR:$rs1, FPR:$rs2, FPR:$rs3))],
       IIAlu>;
 
+def FMADDD : InstR4<0b1000011, 0b01, 0b000, (outs FPR64:$rd), (ins FPR64:$rs1, FPR64:$rs2, FPR64: $rs3),
+      "fmadd.d\t$rd, $rs1, $rs2, $rs3",
+      [(set FPR64:$rd, (fma FPR64:$rs1, FPR64:$rs2, FPR64:$rs3))],
+      IIAlu>;
+
 def FMAXNUM : ArithLogicF<0b0010100, 0b001, "fmax.s", fmaxnum>;
 
 class FSETCC<bits<7> funct7, bits<3> funct3, string asm, PatFrag node>
@@ -174,14 +179,47 @@ def : Pat<(setole FPR:$lhs, FPR:$rhs), (FLES FPR:$lhs, FPR:$rhs)>;
 def : Pat<(setolt FPR:$lhs, FPR:$rhs), (FLTS FPR:$lhs, FPR:$rhs)>;
 def : Pat<(setogt FPR:$lhs, FPR:$rhs), (FLTS FPR:$rhs, FPR:$lhs)>;
 
+class FSETCCD<bits<7> funct7, bits<3> funct3, string asm, PatFrag node>
+            :InstR<0b1010011, funct7, funct3, (outs GPR:$rd),(ins FPR64:$rs1, FPR64:$rs2),
+             !strconcat(asm, "\t$rd, $rs1, $rs2"),
+             [(set GPR:$rd, (node FPR64:$rs1, FPR64:$rs2))], IIAlu>;
+
+def FEQD : FSETCCD<0b1010001, 0b010, "feq.d", seteq>;
+def FLTD : FSETCCD<0b1010001, 0b001, "flt.d", setlt>;
+def FLED : FSETCCD<0b1010001, 0b000, "fle.d", setle>;
+
+def : Pat<(setune FPR64:$lhs, FPR64:$rhs), (XORI (FEQD FPR64:$lhs, FPR64:$rhs), 1)>;
+def : Pat<(setuge FPR64:$lhs, FPR64:$rhs), (FLTD FPR64:$rhs, FPR64:$lhs)>;
+def : Pat<(setule FPR64:$lhs, FPR64:$rhs), (FLED FPR64:$lhs, FPR64:$rhs)>;
+def : Pat<(setult FPR64:$lhs, FPR64:$rhs), (FLTD FPR64:$lhs, FPR64:$rhs)>;
+def : Pat<(setugt FPR64:$lhs, FPR64:$rhs), (FLTD FPR64:$rhs, FPR64:$lhs)>;
+
+def : Pat<(setone FPR64:$lhs, FPR64:$rhs), (XORI (FEQD FPR64:$lhs, FPR64:$rhs), 1)>;
+def : Pat<(setoge FPR64:$lhs, FPR64:$rhs), (FLTD FPR64:$rhs, FPR64:$lhs)>;
+def : Pat<(setole FPR64:$lhs, FPR64:$rhs), (FLED FPR64:$lhs, FPR64:$rhs)>;
+def : Pat<(setolt FPR64:$lhs, FPR64:$rhs), (FLTD FPR64:$lhs, FPR64:$rhs)>;
+def : Pat<(setogt FPR64:$lhs, FPR64:$rhs), (FLTD FPR64:$rhs, FPR64:$lhs)>;
+
 def : Pat<(brcond GPR:$cond, bb:$dst), (BEQ GPR:$cond, (ADDI ZERO, 1), brtarget:$dst)>;
 
 def FSGNJXS : InstR<0b1010011, 0b0010000, 0b010, (outs FPR:$rd), (ins FPR:$rs1, FPR:$rs2),
       "fsgnjx.s\t$rd, $rs1, $rs2", [], IIAlu>;
 
+def FSGNJXD : InstR<0b1010011, 0b0010001, 0b010, (outs FPR64:$rd), (ins FPR64:$rs1, FPR64:$rs2),
+      "fsgnjx.d\t$rd, $rs1, $rs2", [], IIAlu>;
+
 def FABSS:ToyPseudo<(outs FPR:$rd), (ins FPR:$rs1),"", [(set FPR:$rd, (fabs FPR:$rs1))]>,
           PseudoInstExpansion<(FSGNJXS FPR:$rd, FPR:$rs1, FPR:$rs1)>;
-      
+
+def FABSD:ToyPseudo<(outs FPR64:$rd), (ins FPR64:$rs1),"", [(set FPR64:$rd, (fabs FPR64:$rs1))]>,
+          PseudoInstExpansion<(FSGNJXD FPR64:$rd, FPR64:$rs1, FPR64:$rs1)>;
+
+def FSGNJNS : InstR<0b1010011, 0b0010000, 0b001, (outs FPR:$rd), (ins FPR:$rs1, FPR:$rs2),
+      "fsgnjn.s\t$rd, $rs1, $rs2", [], IIAlu>;
+
+def FNEGS:ToyPseudo<(outs FPR:$rd), (ins FPR:$rs1),"", [(set FPR:$rd, (fneg FPR:$rs1))]>,
+          PseudoInstExpansion<(FSGNJNS FPR:$rd, FPR:$rs1, FPR:$rs1)>;
+
 def FCVTSD : InstR<0b1010011, 0b0100000, 0b000, (outs FPR:$rd), (ins FPR64:$rs1),
       "fcvt.s.d\t$rd, $rs1",
       [(set FPR:$rd, (fpround FPR64:$rs1))],
@@ -192,6 +230,20 @@ def FCVTSD : InstR<0b1010011, 0b0100000, 0b000, (outs FPR:$rd), (ins FPR64:$rs1)
 def FCVTDS : InstR<0b1010011, 0b0100001, 0b000, (outs FPR64:$rd), (ins FPR:$rs1),
       "fcvt.d.s\t$rd, $rs1",
       [(set FPR64:$rd, (fpextend FPR:$rs1))],
+      IIAlu> {
+     let rs2=0;
+}
+
+def FCVTDW : InstR<0b1010011, 0b1101001, 0b000, (outs FPR64:$rd), (ins GPR:$rs1),
+      "fcvt.d.w\t$rd, $rs1",
+      [(set FPR64:$rd, (sint_to_fp GPR:$rs1))],
+      IIAlu> {
+     let rs2=0;
+}
+
+def FCVTSW : InstR<0b1010011, 0b1101000, 0b000, (outs FPR:$rd), (ins GPR:$rs1),
+      "fcvt.s.w\t$rd, $rs1",
+      [(set FPR:$rd, (sint_to_fp GPR:$rs1))],
       IIAlu> {
      let rs2=0;
 }

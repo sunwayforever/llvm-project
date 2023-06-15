@@ -6,6 +6,7 @@
 #include "llvm/CodeGen/CallingConvLower.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
+#include "llvm/Support/Alignment.h"
 #include <deque>
 
 #define DEBUG_TYPE "toy isel lowering"
@@ -23,9 +24,11 @@ ToyTargetLowering::ToyTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::Constant, MVT::i32, Custom);
   setOperationAction(ISD::BR_CC, MVT::i32, Expand);
   setOperationAction(ISD::BR_CC, MVT::f32, Expand);
+  setOperationAction(ISD::BR_CC, MVT::f64, Expand);
   setTruncStoreAction(MVT::f64, MVT::f32, Expand);
   setOperationAction(ISD::FMAXNUM, MVT::f32, Legal);
   setLoadExtAction(ISD::EXTLOAD, MVT::f64, MVT::f32, Expand);
+  setBooleanContents(ZeroOrOneBooleanContent);
   computeRegisterProperties(STI.getRegisterInfo());
 }
 
@@ -269,7 +272,7 @@ SDValue ToyTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
           DAG.getNode(ISD::ADD, DL, getPointerTy(DAG.getDataLayout()), StackPtr,
                       DAG.getIntPtrConstant(VA.getLocMemOffset(), DL));
       Chain = DAG.getStore(Chain, DL, OutVals[i], PtrOff, MachinePointerInfo());
-      MFI.setOffsetAdjustment(VA.getLocMemOffset() + 4);
+      MFI.setOffsetAdjustment(alignTo(VA.getLocMemOffset() + 4, 16));
     }
   }
   // -------------------------------------------
