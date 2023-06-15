@@ -25,10 +25,11 @@ class ArithLogicR <bits<7> funct7, bits<3> funct3, string inst, SDNode node>:
 def ADD : ArithLogicR<0b0000000, 0b000, "add", add>;
 def SUB : ArithLogicR<0b0100000, 0b000, "sub", sub>;
 def MUL : ArithLogicR<0b0000001, 0b000, "mul", mul>;
+def MULH : ArithLogicR<0b0000001, 0b001, "mulh", mulhs>;
 def DIV : ArithLogicR<0b0000001, 0b100, "div", sdiv>;
 def REM : ArithLogicR<0b0000001, 0b110, "rem", srem>;
 def AND : ArithLogicR<0b0000000, 0b111, "and", and>;
-def OR : ArithLogicR<0b0000000, 0b110, "or", or>;
+def OR  : ArithLogicR<0b0000000, 0b110, "or", or>;
 def XOR : ArithLogicR<0b0000000, 0b100, "xor", xor>;
 
 def SLL : ArithLogicR<0b0000000, 0b001, "sll", shl>;
@@ -39,9 +40,6 @@ def LUI : InstU<0b0110111, (outs GPR:$rd), (ins imm20:$imm),
           "lui $rd, $imm", [], IIAlu>;
 
 def AddrFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantParent]>;
-
-def : Pat<(i32 imm12:$in),
-          (ADDI ZERO, imm12:$in)>;
 
 // load/store for data types
 multiclass STORE<bits<7> opcode, bits<3> funct3, PatFrag op, string asm, DAGOperand ty> {

@@ -1081,3 +1081,14 @@ j 指令需要使用 jal 实现, 并使用 jal 类型的 fixup
 branch 指令和 jal 类似, 但使用 branch 的 fixup
 
 `make run BINARY=1` 现在都能正常运行.
+
+** toy-48: li
+
+li 伪指令用来把 imm 赋值给 gpr, 如果 imm 为 imm12, 可以用 `addi` 实现, 否则需要
+用 `lui` 和 `addi` 来实现.
+
+需要注意的是针对 imm 获得 lui 需要的高 20 位并不能直接取高 20 位, 因为低 12 位送给 addi
+时有可能被当做负数.
+
+例如 imm = 0x1fff, RISCV_CONST_HIGH_PART(imm) 宏返回 0x2000, 而不是 0x1000, 因为
+低 12 位 0xfff 在 addi 时会 sext 成负数
