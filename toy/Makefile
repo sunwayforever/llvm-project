@@ -16,8 +16,10 @@ all:build
 
 CLANG_PREFIX ?= /opt/llvm-riscv/bin/
 GCC_PREFIX ?= riscv64-unknown-linux-gnu-
+
 DEBUG ?=
 BINARY ?=
+GCC ?=
 
 EXECUTABLES = ${CLANG_PREFIX}clang lld ninja cmake ${GCC_PREFIX}gcc qemu-riscv32
 K := $(foreach exec,$(EXECUTABLES), $(if $(shell command -v $(exec)	\
@@ -43,21 +45,31 @@ RUN_APP := $(patsubst %.elf, run_%,${RUN_ELF})
 ${TEST_ASM}:llvm
 ${TEST_OBJ}:llvm
 
-%.bc:%.c
+${TEST_BC}:%.bc:%.c
 	${CLANG_PREFIX}clang --target=riscv64-unknown-gnu -march=rv32g $< -c -emit-llvm -O0 -o $@ && ${CLANG_PREFIX}llvm-dis $@
 
-%.s:%.bc
+ifeq (${GCC}, 1)
+${TEST_ASM}:%.s:%.c
+	${GCC_PREFIX}gcc -march=rv32g -mabi=ilp32d $< -O3 -o $@ -S
+else
+${TEST_ASM}:%.s:%.bc
 	../build/bin/llc $< -march=toy -o $@ ${DEBUG}
+endif
 
+ifeq (${GCC}, 1)
+${TEST_OBJ}:%.o:%.c
+	${GCC_PREFIX}gcc -march=rv32g -mabi=ilp32d $< -O3 -o $@ -c
+else
 ${TEST_OBJ}:%.o:%.bc
 	../build/bin/llc $< -march=toy -filetype=obj -o $@ ${DEBUG}
+endif
 
 ifeq (${BINARY}, 1)
 ${RUN_ELF}:%.elf:%.o
 else
 ${RUN_ELF}:%.elf:%.s
 endif
-	${GCC_PREFIX}gcc -march=rv32g -mabi=ilp32d $^ -O0 -o $@ -static
+	${GCC_PREFIX}gcc -march=rv32g -mabi=ilp32d $^ -O0 -o $@ -static -lm
 
 ${CHECK_ASM}:check_%:%.s
 	cat $<
@@ -65,15 +77,24 @@ ${CHECK_ASM}:check_%:%.s
 ${RUN_APP}:run_%:%.elf
 	qemu-riscv32 $<
 
-${BUILD_ASM}:FORCE
+${TEST_ASM}:FORCE
+${TEST_OBJ}:FORCE
 
+ifeq (${BINARY}, 1)
+build:${TEST_OBJ}
+else
 build:${TEST_ASM}
+endif
+
 run:${RUN_APP}
 
 clean:
 	rm -f ${TEST_ASM} ${TEST_BC} ${TEST_LL} ${TEST_OBJ} ${RUN_ELF}
 
 .PRECIOUS: %.bc
+
+test:
+	make run && make run BINARY=1 && make run GCC=1
 
 FORCE:
 

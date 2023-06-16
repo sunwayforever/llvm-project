@@ -32,6 +32,9 @@ def AND : ArithLogicR<0b0000000, 0b111, "and", and>;
 def OR  : ArithLogicR<0b0000000, 0b110, "or", or>;
 def XOR : ArithLogicR<0b0000000, 0b100, "xor", xor>;
 
+def MV:ToyPseudo<(outs GPR:$rd), (ins GPR:$rs1),"", []>,
+          PseudoInstExpansion<(ADD GPR:$rd, ZERO, GPR:$rs1)>;
+
 def SLL : ArithLogicR<0b0000000, 0b001, "sll", shl>;
 def SRA : ArithLogicR<0b0100000, 0b101, "sra", sra>;
 def SRL : ArithLogicR<0b0000000, 0b101, "srl", srl>;
@@ -199,6 +202,7 @@ def : Pat<(setoge FPR64:$lhs, FPR64:$rhs), (FLTD FPR64:$rhs, FPR64:$lhs)>;
 def : Pat<(setole FPR64:$lhs, FPR64:$rhs), (FLED FPR64:$lhs, FPR64:$rhs)>;
 def : Pat<(setolt FPR64:$lhs, FPR64:$rhs), (FLTD FPR64:$lhs, FPR64:$rhs)>;
 def : Pat<(setogt FPR64:$lhs, FPR64:$rhs), (FLTD FPR64:$rhs, FPR64:$lhs)>;
+def : Pat<(setoeq FPR64:$lhs, FPR64:$rhs), (FEQD FPR64:$rhs, FPR64:$lhs)>;
 
 def : Pat<(brcond GPR:$cond, bb:$dst), (BEQ GPR:$cond, (ADDI ZERO, 1), brtarget:$dst)>;
 
@@ -219,6 +223,18 @@ def FSGNJNS : InstR<0b1010011, 0b0010000, 0b001, (outs FPR:$rd), (ins FPR:$rs1, 
 
 def FNEGS:ToyPseudo<(outs FPR:$rd), (ins FPR:$rs1),"", [(set FPR:$rd, (fneg FPR:$rs1))]>,
           PseudoInstExpansion<(FSGNJNS FPR:$rd, FPR:$rs1, FPR:$rs1)>;
+
+def FSGNJS : InstR<0b1010011, 0b0010000, 0b000, (outs FPR:$rd), (ins FPR:$rs1, FPR:$rs2),
+      "fsgnj.s\t$rd, $rs1, $rs2", [], IIAlu>;
+
+def FMVS:ToyPseudo<(outs FPR:$rd), (ins FPR:$rs1),"", []>,
+          PseudoInstExpansion<(FSGNJS FPR:$rd, FPR:$rs1, FPR:$rs1)>;
+
+def FSGNJD : InstR<0b1010011, 0b0010001, 0b000, (outs FPR64:$rd), (ins FPR64:$rs1, FPR64:$rs2),
+      "fsgnj.d\t$rd, $rs1, $rs2", [], IIAlu>;
+
+def FMVD:ToyPseudo<(outs FPR64:$rd), (ins FPR64:$rs1),"", []>,
+          PseudoInstExpansion<(FSGNJD FPR64:$rd, FPR64:$rs1, FPR64:$rs1)>;
 
 def FCVTSD : InstR<0b1010011, 0b0100000, 0b000, (outs FPR:$rd), (ins FPR64:$rs1),
       "fcvt.s.d\t$rd, $rs1",
