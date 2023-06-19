@@ -15,6 +15,8 @@
 #   define TARGET_BUILTIN(ID, TYPE, ATTRS, FEATURE) BUILTIN(ID, TYPE, ATTRS)
 #endif
 
+TARGET_BUILTIN(__builtin_toy_getsp, "v*", "n", "32bit")
+
 // Zbb extension
 TARGET_BUILTIN(__builtin_riscv_orc_b_32, "ZiZi", "nc", "zbb")
 TARGET_BUILTIN(__builtin_riscv_orc_b_64, "WiWi", "nc", "zbb,64bit")

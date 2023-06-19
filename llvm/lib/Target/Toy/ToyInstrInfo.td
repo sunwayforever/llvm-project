@@ -274,3 +274,5 @@ def FADDD : ArithLogicF64<0b0000001, 0b000, "fadd.d", fadd>;
 def FSUBD : ArithLogicF64<0b0000101, 0b000, "fsub.d", fsub>;
 def FMULD : ArithLogicF64<0b0001001, 0b000, "fmul.d", fmul>;
 def FDIVD : ArithLogicF64<0b0001101, 0b000, "fdiv.d", fdiv>;
+
+def : Pat<(int_toy_getsp), (ADDI SP, 0)>;

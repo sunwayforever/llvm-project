@@ -10,7 +10,6 @@
 - 可变参数的调用约定
 - 加入调试信息
 - objdump
-- instrinsic
 - 向量
 - 其它 RISC-V 扩展
 - 通过 [[https://github.com/llvm/llvm-test-suite/][llvm-test-suite]] 测试
