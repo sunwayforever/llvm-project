@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 int main(int argc, char **argv) {
-  printf("Hello world!\n");
-  return 0;
+  int a = argc;
+  int b = argc + 1;
+  return b;
 }
