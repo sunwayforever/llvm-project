@@ -9,5 +9,5 @@
 int main(int argc, char **argv) {
   int a = argc;
   int b = argc + 1;
-  return b;
+  return b - 2;
 }
