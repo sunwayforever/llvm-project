@@ -114,15 +114,23 @@ struct BinaryOpLowering : public ConversionPattern {
 
                      // Generate loads for the element of 'lhs' and 'rhs' at the
                      // inner loop.
-                     auto loadedLhs = builder.create<affine::AffineLoadOp>(
-                         loc, binaryAdaptor.getLhs(), loopIvs);
-                     auto loadedRhs = builder.create<affine::AffineLoadOp>(
+                     Value loadedLhs = Value();
+                     auto lhsType = cast<mlir::MemRefType>(binaryAdaptor.getLhs().getType());
+                     if (lhsType.getShape().size() == 0) {
+                       loadedLhs = builder.create<memref::LoadOp>(loc,binaryAdaptor.getLhs());
+                     } else {
+                       loadedLhs = builder.create<affine::AffineLoadOp>(
+                           loc, binaryAdaptor.getLhs(), loopIvs);
+                     }
+                     Value loadedRhs = Value();
+                     auto rhsType = cast<mlir::MemRefType>(binaryAdaptor.getRhs().getType());
+                     if (rhsType.getShape().size() == 0) {
+                       loadedRhs = builder.create<memref::LoadOp>(loc,binaryAdaptor.getRhs());
+                     } else {
+                       loadedRhs = builder.create<affine::AffineLoadOp>(
                          loc, binaryAdaptor.getRhs(), loopIvs);
-
-                     // Create the binary operation performed on the loaded
-                     // values.
-                     return builder.create<LoweredBinaryOp>(loc, loadedLhs,
-                                                            loadedRhs);
+                     }
+                     return builder.create<LoweredBinaryOp>(loc, loadedLhs, loadedRhs);
                    });
     return success();
   }

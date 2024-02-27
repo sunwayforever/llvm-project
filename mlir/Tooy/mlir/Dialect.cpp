@@ -237,7 +237,14 @@ void AddOp::print(mlir::OpAsmPrinter &p) { printBinaryOp(p, *this); }
 
 /// Infer the output shape of the AddOp, this is required by the shape inference
 /// interface.
-void AddOp::inferShapes() { getResult().setType(getLhs().getType()); }
+void AddOp::inferShapes() {
+  auto lhsType = getLhs().getType();
+  if (lhsType.getShape().size() != 0) {
+    getResult().setType(getLhs().getType());
+  } else {
+    getResult().setType(getRhs().getType());
+  }
+}
 
 //===----------------------------------------------------------------------===//
 // CastOp
