@@ -60,4 +60,9 @@ def RedundantReshapeOptPattern : Pat<
   (ReshapeOp:$res $arg), (replaceWithValue $arg),
   [(TypesAreIdentical $res, $arg)]>;
 
+
+// mul(div(y,x),x) = y, where input and output shapes are identical
+def DivThenMulPattern : Pat<
+  (MulOp (DivOp $y, $x), $x), (replaceWithValue $y)>;
+
 #endif // TOY_COMBINE

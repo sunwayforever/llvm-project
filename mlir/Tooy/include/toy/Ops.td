@@ -245,7 +245,7 @@ def MulOp : Toy_Op<"mul",
 
   // Indicate that the operation has a custom parser and printer method.
   let hasCustomAssemblyFormat = 1;
-
+  let hasCanonicalizer = 1;
   // Allow building a MulOp with from the two input operands.
   let builders = [
     OpBuilder<(ins "Value":$lhs, "Value":$rhs)>
@@ -269,7 +269,7 @@ def DivOp : Toy_Op<"div",
 
   // Indicate that the operation has a custom parser and printer method.
   let hasCustomAssemblyFormat = 1;
-
+  let hasCanonicalizer = 1;
   // Allow building a DivOp with from the two input operands.
   let builders = [
     OpBuilder<(ins "Value":$lhs, "Value":$rhs)>

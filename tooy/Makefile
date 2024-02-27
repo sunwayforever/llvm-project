@@ -10,7 +10,7 @@ TEST_TOOY_MLIR_AFFINE := $(patsubst %.toy,%.1.mlir,${TEST_TOOY_SRC})
 TEST_TOOY_MLIR_LLVM := $(patsubst %.toy,%.2.mlir,${TEST_TOOY_SRC})
 
 TEST_TOOY_LL := $(patsubst %.toy,%.ll,${TEST_TOOY_SRC})
-TEST_TOOY_ELF := $(patsubst %.toy,run_%,${TEST_TOOY_SRC})
+TEST_TOOY_ELF := $(patsubst %.toy,%.run,${TEST_TOOY_SRC})
 
 ${TEST_TOOY_AST}:%.ast:FORCE
 ${TEST_TOOY_AST}:%.ast:%.toy
@@ -18,7 +18,7 @@ ${TEST_TOOY_AST}:%.ast:%.toy
 
 ${TEST_TOOY_MLIR}:%.0.mlir:FORCE
 ${TEST_TOOY_MLIR}:%.0.mlir:%.toy
-	${TOOY_PREFIX} $< -emit=mlir 2> $@ ; cat $@
+	${TOOY_PREFIX} $< -emit=mlir -opt 2> $@ ; cat $@
 
 ${TEST_TOOY_MLIR_AFFINE}:%.1.mlir:FORCE
 ${TEST_TOOY_MLIR_AFFINE}:%.1.mlir:%.toy
@@ -32,7 +32,7 @@ ${TEST_TOOY_LL}:%.ll:FORCE
 ${TEST_TOOY_LL}:%.ll:%.toy
 	${TOOY_PREFIX} $< -emit=llvm 2> $@ ; cat $@
 
-${TEST_TOOY_ELF}:run_%:%.toy
+${TEST_TOOY_ELF}:%.run:%.toy
 	${TOOY_PREFIX} $< -emit=jit
 
 build:${TEST_TOOY_LL}

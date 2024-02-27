@@ -66,3 +66,41 @@ void ReshapeOp::getCanonicalizationPatterns(RewritePatternSet &results,
   results.add<ReshapeReshapeOptPattern, RedundantReshapeOptPattern,
               FoldConstantReshapeOptPattern>(context);
 }
+
+void MulOp::getCanonicalizationPatterns(RewritePatternSet &results,
+                                        MLIRContext *context) {
+  results.add<DivThenMulPattern>(context);
+}
+
+// replace a*b/b with a, a*b/a with b
+struct MulThenDivPattern : public mlir::OpRewritePattern<DivOp> {
+  MulThenDivPattern(mlir::MLIRContext *context)
+      : OpRewritePattern<DivOp>(context, /*benefit=*/1) {}
+
+  mlir::LogicalResult
+  matchAndRewrite(DivOp op, mlir::PatternRewriter &rewriter) const override {
+    mlir::Value divLHS = op.getOperand(0);
+    mlir::Value divRHS = op.getOperand(1);
+    MulOp mulOp = divLHS.getDefiningOp<MulOp>();
+
+    if (!mulOp)
+      return failure();
+
+    if (mulOp.getOperand(1) == divRHS) {
+      rewriter.replaceOp(op, {mulOp.getOperand(0)});
+      return success();
+    }
+
+    if (mulOp.getOperand(0) == divRHS) {
+      rewriter.replaceOp(op, {mulOp.getOperand(1)});
+      return success();
+    }
+
+    return success();
+  }
+};
+
+void DivOp::getCanonicalizationPatterns(RewritePatternSet &results,
+                                        MLIRContext *context) {
+  results.add<MulThenDivPattern>(context);
+}
