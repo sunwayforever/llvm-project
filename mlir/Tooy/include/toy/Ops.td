@@ -20,6 +20,8 @@ include "mlir/Interfaces/CastInterfaces.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 include "toy/ShapeInferenceInterface.td"
 
+def NeedIntTypeTrait : NativeOpTrait<"NeedIntTypeTrait">;
+
 // Provide a definition of the 'toy' dialect in the ODS framework so that we
 // can define our operations.
 def Toy_Dialect : Dialect {
@@ -281,7 +283,7 @@ def DivOp : Toy_Op<"div",
 //===----------------------------------------------------------------------===//
 
 def AndOp : Toy_Op<"and",
-    [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
+    [Pure, NeedIntTypeTrait, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
   let summary = "element-wise and operation";
   let description = [{
     The "and" operation performs element-wise and between two

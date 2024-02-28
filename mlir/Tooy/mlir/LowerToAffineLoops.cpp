@@ -130,14 +130,14 @@ struct BinaryOpLowering : public ConversionPattern {
                      }
 
                      auto opname = op->getName();
-                     if (opname.getStringRef().str() == "toy.and") {
+                     if (op->hasTrait<OpTrait::NeedIntTypeTrait>()) {
                        loadedLhs = builder.create<arith::FPToUIOp>(loc, builder.getI64Type(), loadedLhs);
                        loadedRhs = builder.create<arith::FPToUIOp>(loc, builder.getI64Type(), loadedRhs);
                      }
 
                      Value ret = builder.create<LoweredBinaryOp>(loc, loadedLhs, loadedRhs);
 
-                     if (opname.getStringRef().str() == "toy.and") {
+                     if (op->hasTrait<OpTrait::NeedIntTypeTrait>()) {
                        ret = builder.create<arith::UIToFPOp>(loc, builder.getF64Type(), ret);
                      }
                      return ret;
