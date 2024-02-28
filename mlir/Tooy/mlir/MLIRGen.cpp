@@ -197,6 +197,8 @@ private:
     switch (binop.getOp()) {
     case '+':
       return builder.create<AddOp>(location, lhs, rhs);
+    case '&':
+      return builder.create<AndOp>(location, lhs, rhs);
     case '*':
       return builder.create<MulOp>(location, lhs, rhs);
     case '/':
